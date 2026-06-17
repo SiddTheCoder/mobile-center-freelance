@@ -580,7 +580,7 @@ Order delivered
 That is the core logic.
 
 UXPilot Prompt for Admin Portal
-Design a premium desktop admin portal for “ZOLPA”, a Nepal electronics ecommerce store. The admin should manage the whole website: products, orders, carts, checkout, tracking, homepage banners, categories, customers, coupons, blogs, payments, reports, users, and settings.
+Design a premium desktop admin portal for "Demo Store", a Nepal electronics ecommerce store. The admin should manage the whole website: products, orders, carts, checkout, tracking, homepage banners, categories, customers, coupons, blogs, payments, reports, users, and settings.
 
 Style: modern ecommerce admin dashboard, 1440px desktop, dark/white sidebar layout, deep purple primary color, orange accent, clean cards, rounded corners, subtle shadows, Inter/Poppins font, production-ready UI.
 
@@ -594,13 +594,48 @@ Create these admin screens:
 7. Homepage CMS to manage hero banner, promo banners, featured products, trending categories, limited deals, new arrivals, blogs, footer.
 8. Category and Brand Manager with icons, images, slugs, status, sort order.
 9. Customers page with order history, total spent, addresses, abandoned carts.
-10. Coupons/Discounts page with code, discount type, value, usage limit, start/end date, status.
-11. Blogs manager.
-12. Payments page.
-13. Reports/Analytics page.
-14. Users/Roles page.
-15. Settings page for store info, contact, shipping, payment, invoice, SEO, notifications, policies.
+10. Carts / Abandoned Carts page with guest carts, cart value, last activity, checkout started, and recovery status.
+11. Coupons/Discounts page with code, discount type, value, usage limit, start/end date, status.
+12. Banners manager with desktop image, mobile image, CTA, dates, status, and position.
+13. Reviews and Product Q&A manager with approve, reject, reply, and delete actions.
+14. Blogs manager with cover image, category, author, content, tags, SEO, and publish status.
+15. Payments page with order ID, customer, payment method, payment status, transaction ID, amount, refunds, COD, and EMI.
+16. Reports/Analytics page for sales, product performance, category performance, customer report, coupon usage, inventory, delivery, and payment reports.
+17. Users/Roles page for Super Admin, Store Manager, Order Manager, Inventory Manager, Content Manager, and Support Staff.
+18. Settings page for store info, contact, shipping, payment, invoice, SEO, notifications, return policy, terms, and privacy.
 
 Use a left sidebar with tabs: Dashboard, Orders, Tracking, Products, Inventory, Categories, Brands, Customers, Carts, Coupons, Homepage CMS, Banners, Reviews, Blogs, Payments, Reports, Users, Settings.
 
-Make the UI clean, practical, and easy for a non-technical store owner to manage the full ecommerce websi
+Make the UI clean, practical, and easy for a non-technical store owner to manage the full ecommerce website.
+
+Scalable Admin Route Structure
+
+The admin portal should not live as one huge component. Use a route shell plus independent tab components.
+
+Current structure:
+
+app/admin/page.tsx
+components/admin-portal.tsx
+components/admin/admin-data.ts
+components/admin/admin-shared.tsx
+components/admin/tabs/dashboard-tab.tsx
+components/admin/tabs/orders-tab.tsx
+components/admin/tabs/tracking-tab.tsx
+components/admin/tabs/products-tab.tsx
+components/admin/tabs/inventory-tab.tsx
+components/admin/tabs/categories-tab.tsx
+components/admin/tabs/brands-tab.tsx
+components/admin/tabs/customers-tab.tsx
+components/admin/tabs/carts-tab.tsx
+components/admin/tabs/coupons-tab.tsx
+components/admin/tabs/homepage-tab.tsx
+components/admin/tabs/banners-tab.tsx
+components/admin/tabs/reviews-tab.tsx
+components/admin/tabs/blogs-tab.tsx
+components/admin/tabs/payments-tab.tsx
+components/admin/tabs/reports-tab.tsx
+components/admin/tabs/users-tab.tsx
+components/admin/tabs/settings-tab.tsx
+
+Implementation rule:
+Each sidebar tab should have its own component file. Shared table, panel, and status badge UI should stay in admin-shared.tsx. Dummy data should stay in admin-data.ts until a real backend is connected.

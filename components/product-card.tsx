@@ -35,7 +35,7 @@ export function ProductCard({ product, compact = false, onAdd }: ProductCardProp
           href={`/product/${product.id}`}
           className={cn(
             "group relative flex w-full items-center justify-center overflow-hidden rounded-t-[8px] bg-[#f5f5f6]",
-            compact ? "h-40" : "h-48 md:h-56"
+            compact ? "h-48" : "h-60 md:h-72"
           )}
         >
           <img
@@ -64,7 +64,7 @@ export function ProductCard({ product, compact = false, onAdd }: ProductCardProp
             <ChevronRight className="size-4" />
           </span>
         </Link>
-        <CardContent className="flex flex-1 flex-col px-3 py-3">
+        <CardContent className="flex flex-1 flex-col px-4 py-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f97316]">
               {product.brand}
@@ -81,7 +81,7 @@ export function ProductCard({ product, compact = false, onAdd }: ProductCardProp
             href={`/product/${product.id}`}
             className={cn(
               "line-clamp-2 min-h-11 font-semibold leading-snug text-[#101322] hover:text-[#f97316]",
-              compact ? "text-sm" : "text-[15px]"
+              compact ? "text-sm" : "text-base"
             )}
           >
             {product.name}
@@ -116,7 +116,7 @@ export function ProductCard({ product, compact = false, onAdd }: ProductCardProp
           </div>
           <div className="mt-auto flex items-end justify-between gap-3 pt-3">
             <div>
-              <p className="text-lg font-black text-[#101322]">
+              <p className={cn("font-black text-[#101322]", compact ? "text-lg" : "text-xl")}>
                 {formatPrice(product.price)}
               </p>
               {product.originalPrice && (

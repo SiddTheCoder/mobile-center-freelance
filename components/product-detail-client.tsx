@@ -120,7 +120,6 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     <main className="min-h-screen bg-[#fbfbfa] text-[#101322]">
       <StorefrontHeader
         totalItems={totalItems}
-        onCartOpen={() => setCartOpen(true)}
         onLoginOpen={() => setLoginOpen(true)}
       />
 
@@ -439,6 +438,63 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         onModeChange={setAuthMode}
       />
 
+      {/* Sticky Bottom Product Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur-md p-3 shadow-2xl md:py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-2 md:px-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="hidden size-11 shrink-0 place-items-center rounded-[8px] bg-[#f5f5f6] p-1.5 sm:grid border border-slate-200/50">
+              <img
+                src={product.image}
+                alt=""
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="line-clamp-1 text-sm font-black text-[#101322] md:text-base">
+                {product.name}
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-sm font-black text-[#f97316]">
+                  {formatPrice(product.price)}
+                </span>
+                {product.originalPrice && (
+                  <span className="text-[10px] text-slate-400 line-through">
+                    {formatPrice(product.originalPrice)}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="hidden items-center justify-between rounded-[8px] border border-[#dddddf] bg-white px-2.5 h-10 w-28 sm:flex">
+              <button
+                type="button"
+                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                className="grid size-6 place-items-center rounded-[6px] hover:bg-[#f5f5f6] text-slate-500 transition"
+              >
+                <Minus className="size-3.5" />
+              </button>
+              <span className="text-xs font-black">{quantity}</span>
+              <button
+                type="button"
+                onClick={() => setQuantity((value) => value + 1)}
+                className="grid size-6 place-items-center rounded-[6px] hover:bg-[#f5f5f6] text-slate-500 transition"
+              >
+                <Plus className="size-3.5" />
+              </button>
+            </div>
+            <Button
+              type="button"
+              onClick={() => addToCart(product, quantity)}
+              className="h-10 px-5 rounded-[8px] bg-[#ef0f63] text-white hover:bg-[#f97316] text-xs font-black shadow-md shadow-rose-500/10 transition"
+            >
+              <ShoppingCart className="size-3.5 mr-1.5" />
+              Add to Cart
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -458,7 +514,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed bottom-24 right-5 z-40 w-80 rounded-[12px] bg-gradient-to-r from-orange-500 via-purple-600 to-indigo-700 p-5 text-white shadow-2xl border border-white/10"
+            className="fixed bottom-36 right-5 z-40 w-80 rounded-[12px] bg-gradient-to-r from-orange-500 via-purple-600 to-indigo-700 p-5 text-white shadow-2xl border border-white/10"
           >
             <button
               onClick={() => setBotOpen(false)}
@@ -477,7 +533,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.96 }}
         onClick={() => window.open("https://wa.me/9800000000", "_blank")}
-        className="fixed bottom-5 right-5 z-50 grid size-14 place-items-center rounded-full bg-[#25D366] text-white shadow-2xl hover:bg-[#20ba5a] transition duration-200"
+        className="fixed bottom-20 right-5 z-50 grid size-14 place-items-center rounded-full bg-[#25D366] text-white shadow-2xl hover:bg-[#20ba5a] transition duration-200"
         aria-label="Open live chat"
       >
         <MessageCircle className="size-6 fill-white" />

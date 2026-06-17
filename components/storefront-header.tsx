@@ -13,7 +13,6 @@ import {
   MapPin,
   Monitor,
   Search,
-  ShieldCheck,
   ShoppingCart,
   Smartphone,
   User,
@@ -41,6 +40,18 @@ type TopCategory = {
 const categories: TopCategory[] = [
   { name: "Laptop", icon: Laptop },
   { name: "Apple", icon: Smartphone },
+  { name: "Samsung", icon: Smartphone },
+  { name: "Infinix", icon: Smartphone },
+  { name: "HONOR", icon: Smartphone },
+  { name: "Xiaomi", icon: Smartphone },
+  { name: "OnePlus", icon: Smartphone },
+  { name: "OPPO", icon: Smartphone },
+  { name: "vivo", icon: Smartphone },
+  { name: "Nothing", icon: Smartphone },
+  { name: "realme", icon: Smartphone },
+  { name: "TECNO", icon: Smartphone },
+  { name: "Motorola", icon: Smartphone },
+  { name: "ASUS ROG", icon: Smartphone },
   { name: "Smart Phone", icon: Smartphone },
   { name: "Tablet", icon: Smartphone },
   { name: "Monitor", icon: Monitor },
@@ -69,7 +80,7 @@ type SidebarCategory = {
   brands: SidebarBrand[]
 }
 
-const sidebarCategories: SidebarCategory[] = [
+const rawSidebarCategories: SidebarCategory[] = [
   {
     name: "Laptop",
     brands: [
@@ -210,15 +221,85 @@ const sidebarCategories: SidebarCategory[] = [
   }
 ]
 
+const featuredPhoneBrands = [
+  { name: "Apple", brand: "Apple" },
+  { name: "Samsung", brand: "Samsung" },
+  { name: "Infinix", brand: "Infinix" },
+  { name: "HONOR", brand: "HONOR" },
+  { name: "Xiaomi", brand: "Xiaomi" },
+  { name: "OnePlus", brand: "OnePlus" },
+  { name: "OPPO", brand: "OPPO" },
+  { name: "vivo", brand: "vivo" },
+  { name: "Nothing", brand: "Nothing" },
+  { name: "realme", brand: "realme" },
+  { name: "TECNO", brand: "TECNO" },
+  { name: "Motorola", brand: "Motorola" },
+  { name: "ASUS ROG", brand: "ASUS" },
+]
+
+const catalogById = new Map(products.map((product) => [product.id, product]))
+const featuredBrandNames = new Set(
+  featuredPhoneBrands.map((item) => item.name.toLowerCase())
+)
+
+function toSidebarProduct(product: (typeof products)[number]): SidebarProduct {
+  return {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    originalPrice: product.originalPrice,
+    image: product.image,
+  }
+}
+
+function enrichSidebarProduct(product: SidebarProduct): SidebarProduct {
+  const catalogProduct = catalogById.get(product.id)
+
+  if (!catalogProduct) return product
+
+  return {
+    ...product,
+    price: catalogProduct.price,
+    originalPrice: catalogProduct.originalPrice,
+    image: catalogProduct.image,
+  }
+}
+
+const brandSidebarCategories: SidebarCategory[] = featuredPhoneBrands.map(
+  (item) => ({
+    name: item.name,
+    brands: [
+      {
+        name: `${item.name} latest`,
+        products: products
+          .filter((product) => product.brand === item.brand)
+          .slice(0, 4)
+          .map(toSidebarProduct),
+      },
+    ],
+  })
+)
+
+const sidebarCategories: SidebarCategory[] = [
+  ...rawSidebarCategories
+    .filter((item) => !featuredBrandNames.has(item.name.toLowerCase()))
+    .map((category) => ({
+      ...category,
+      brands: category.brands.map((brand) => ({
+        ...brand,
+        products: brand.products.map(enrichSidebarProduct),
+      })),
+    })),
+  ...brandSidebarCategories,
+]
+
 type StorefrontHeaderProps = {
   totalItems: number
-  onCartOpen: () => void
   onLoginOpen: () => void
 }
 
 export function StorefrontHeader({
   totalItems,
-  onCartOpen,
   onLoginOpen,
 }: StorefrontHeaderProps) {
   const [megaOpen, setMegaOpen] = React.useState(false)
@@ -228,6 +309,7 @@ export function StorefrontHeader({
   const [headerVisible, setHeaderVisible] = React.useState(true)
   const [promoVisible, setPromoVisible] = React.useState(true)
   const closeMegaTimer = React.useRef<number | null>(null)
+  const openMegaTimer = React.useRef<number | null>(null)
   const categoryScrollerRef = React.useRef<HTMLElement | null>(null)
   const lastScrollY = React.useRef(0)
   const shouldReduceMotion = useReducedMotion()
@@ -246,6 +328,7 @@ export function StorefrontHeader({
     if (latest < 96) {
       setHeaderVisible(true)
     } else if (scrollingDown && latest > 160) {
+      if (openMegaTimer.current) window.clearTimeout(openMegaTimer.current)
       setHeaderVisible(false)
       setMegaOpen(false)
       setSearchFocused(false)
@@ -271,12 +354,17 @@ export function StorefrontHeader({
   }, [searchQuery])
 
   const openMega = (catName?: string) => {
+    if (openMegaTimer.current) {
+      window.clearTimeout(openMegaTimer.current)
+      openMegaTimer.current = null
+    }
     if (closeMegaTimer.current) window.clearTimeout(closeMegaTimer.current)
     if (catName) {
       // Normalise to match our sidebarCategories names
       const match = sidebarCategories.find(
         (c) => c.name.toLowerCase() === catName.toLowerCase() || 
                (catName.toLowerCase() === "pc components" && c.name.toLowerCase() === "pc component") ||
+               (catName.toLowerCase() === "projector accessories" && c.name.toLowerCase() === "accessories") ||
                (catName.toLowerCase() === "audio" && c.name.toLowerCase() === "headphone")
       )
       if (match) setActiveCategory(match.name)
@@ -284,12 +372,33 @@ export function StorefrontHeader({
     setMegaOpen(true)
   }
 
+  const scheduleMegaOpen = (catName?: string) => {
+    if (closeMegaTimer.current) window.clearTimeout(closeMegaTimer.current)
+    if (openMegaTimer.current) window.clearTimeout(openMegaTimer.current)
+
+    openMegaTimer.current = window.setTimeout(() => {
+      openMega(catName)
+    }, 500)
+  }
+
   const closeMega = () => {
+    if (openMegaTimer.current) {
+      window.clearTimeout(openMegaTimer.current)
+      openMegaTimer.current = null
+    }
     closeMegaTimer.current = window.setTimeout(
       () => setMegaOpen(false),
       140
     )
   }
+
+  React.useEffect(
+    () => () => {
+      if (openMegaTimer.current) window.clearTimeout(openMegaTimer.current)
+      if (closeMegaTimer.current) window.clearTimeout(closeMegaTimer.current)
+    },
+    []
+  )
 
   const scrollCategories = (direction: -1 | 1) => {
     categoryScrollerRef.current?.scrollBy({
@@ -441,7 +550,7 @@ export function StorefrontHeader({
         >
           <button
             type="button"
-            onMouseEnter={() => openMega()}
+            onMouseEnter={() => scheduleMegaOpen()}
             onFocus={() => openMega()}
             onClick={() => openMega()}
             className={cn(
@@ -458,7 +567,7 @@ export function StorefrontHeader({
             <button
               key={category.name}
               type="button"
-              onMouseEnter={() => openMega(category.name)}
+              onMouseEnter={() => scheduleMegaOpen(category.name)}
               onFocus={() => openMega(category.name)}
               onClick={() => openMega(category.name)}
               className={cn(

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import Lenis from "lenis"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import {
@@ -24,6 +25,7 @@ import {
   Tv,
   Watch,
   Zap,
+  Plane,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -43,21 +45,34 @@ import { SiteFooter } from "@/components/site-footer"
 import { StorefrontHeader } from "@/components/storefront-header"
 import { CART_STORAGE_KEY } from "@/lib/platform"
 import { cn } from "@/lib/utils"
-import { formatPrice, products, type CartItem, type Product } from "@/lib/products"
+import {
+  formatPrice,
+  getProductById,
+  getPhoneProducts,
+  getProductsForSection,
+  phoneBrandFilters,
+  products,
+  type CartItem,
+  type Product,
+} from "@/lib/products"
+
+const productImage = (id: string) =>
+  getProductById(id)?.image ??
+  "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_fc51d7952f_5e8b3ea510d43dbe.png"
 
 const heroSlides = [
   {
     eyebrow: "EMI starting at 0%",
-    title: "Xiaomi 17T",
+    title: "Xiaomi 17",
     copy: "Power meets elegance. Experience the flagship performance with our hassle-free EMI plan.",
     priceDetails: {
-      total: "Rs. 89,999/-",
-      downPayment: "Rs. 35,999/-",
-      emi: "Rs. 5,999/-"
+      total: "Rs. 124,999/-",
+      downPayment: "Rs. 49,999/-",
+      emi: "Rs. 8,334/-"
     },
     price: "0% Interest",
-    image:
-      "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_fc51d7952f_5e8b3ea510d43dbe.png",
+    image: productImage("xiaomi-17"),
+    href: "/product/xiaomi-17",
     tone: "from-slate-100 via-slate-100 to-slate-200",
     isLight: true,
   },
@@ -66,8 +81,8 @@ const heroSlides = [
     title: "DRAMATIC DEALS ON MONITORS",
     copy: "From Budget to High-Performance Displays. Get a Free Keyboard with Every Monitor Purchase.",
     price: "Free Keyboard",
-    image:
-      "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_c3f124c435_27aba7988df0bb3a.png",
+    image: productImage("lenovo-gaming-27"),
+    href: "/section/monitors",
     tone: "from-[#ea580c] via-[#ec4899] to-[#6d28d9]",
     isLight: false,
   },
@@ -75,13 +90,11 @@ const heroSlides = [
 
 const categoryPills = [
   { name: "Laptop", icon: Laptop },
-  { name: "Macbook", icon: Laptop },
+  { name: "MacBook", icon: Laptop },
   { name: "iPhone", icon: Smartphone },
   { name: "Smart Phone", icon: Smartphone },
-  { name: "Monitor", icon: Monitor },
-  { name: "Gaming", icon: Gamepad2 },
-  { name: "Camera", icon: Camera },
-  { name: "Watch", icon: Watch },
+  { name: "Projector", icon: Monitor },
+  { name: "Drone", icon: Plane },
 ]
 
 const shopTiles = [
@@ -125,15 +138,24 @@ const blogCards = [
 ]
 
 const emiDocuments = [
-  "Citizenship or government ID",
-  "Recent passport size photo",
-  "Income proof or salary slip",
-  "Bank statement for last 3 months",
-  "Permanent address verification",
-  "PAN/VAT bill for company purchase",
+  "Nepali citizenship card",
 ]
 
 const emiTermOptions = [6, 9, 12, 18]
+
+function productMatchesCategory(product: Product, category: string) {
+  if (category.toLowerCase() === "macbook") {
+    return product.category === "Laptop" && product.brand === "Apple"
+  }
+
+  if (category === "iPhone") {
+    return product.category === "Smart Phone" && product.brand === "Apple"
+  }
+
+  if (category === "Laptop") return product.category === "Laptop"
+
+  return product.category === category || product.brand === category
+}
 
 function RevealSection({
   children,
@@ -164,10 +186,12 @@ function SectionTitle({
   eyebrow,
   title,
   action,
+  actionHref = "#products",
 }: {
   eyebrow?: string
   title: string
   action?: string
+  actionHref?: string
 }) {
   return (
     <div className="mb-5 flex items-end justify-between gap-4">
@@ -182,14 +206,40 @@ function SectionTitle({
         </h2>
       </div>
       {action && (
-        <a
-          href="#products"
+        <Link
+          href={actionHref}
           className="hidden items-center gap-1 text-sm font-semibold text-[#2b0f52] transition hover:text-[#f97316] sm:flex"
         >
           {action}
           <ArrowRight className="size-4" />
-        </a>
+        </Link>
       )}
+    </div>
+  )
+}
+
+function ProductShelf({
+  items,
+  onAdd,
+  compact = false,
+}: {
+  items: Product[]
+  onAdd: (product: Product) => void
+  compact?: boolean
+}) {
+  return (
+    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
+      {items.map((product) => (
+        <div
+          key={product.id}
+          className={cn(
+            "shrink-0",
+            compact ? "w-[280px] sm:w-[310px]" : "w-[300px] sm:w-[330px] lg:w-[350px]"
+          )}
+        >
+          <ProductCard product={product} compact={compact} onAdd={onAdd} />
+        </div>
+      ))}
     </div>
   )
 }
@@ -198,6 +248,7 @@ export default function Storefront() {
   const shouldReduceMotion = useReducedMotion()
   const [currentHero, setCurrentHero] = React.useState(0)
   const [activeCategory, setActiveCategory] = React.useState("Laptop")
+  const [activePhoneBrand, setActivePhoneBrand] = React.useState("smart-phones")
   const [arrivalTab, setArrivalTab] = React.useState("Laptop")
   const [cartOpen, setCartOpen] = React.useState(false)
   const [loginOpen, setLoginOpen] = React.useState(false)
@@ -228,10 +279,14 @@ export default function Storefront() {
 
   // Load cart from localStorage on mount
   React.useEffect(() => {
-    try {
-      const saved = localStorage.getItem(CART_STORAGE_KEY)
-      if (saved) setCartItems(JSON.parse(saved))
-    } catch {}
+    const timer = window.setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(CART_STORAGE_KEY)
+        if (saved) setCartItems(JSON.parse(saved))
+      } catch {}
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [])
 
   React.useEffect(() => {
@@ -258,34 +313,51 @@ export default function Storefront() {
   const emiFinanceAmount = Math.max(emiPrice - emiPaidDownPayment, 0)
   const emiMonthlyPayment =
     emiMonths > 0 ? Math.ceil(emiFinanceAmount / emiMonths) : 0
+  const activePhoneFilter =
+    phoneBrandFilters.find((filter) => filter.slug === activePhoneBrand) ??
+    phoneBrandFilters[0]
+  const phoneRowProducts = React.useMemo(
+    () => getPhoneProducts(activePhoneFilter.brand).slice(0, 12),
+    [activePhoneFilter.brand]
+  )
+  const laptopShelfProducts = getProductsForSection("laptops").slice(0, 12)
+  const accessoryShelfProducts = getProductsForSection("tech-accessories").slice(0, 12)
+  const worldCupProducts = getProductsForSection("world-cup")
+  const dealProducts = getProductsForSection("deals").slice(0, 12)
 
   const categoryProducts = React.useMemo(
-    () =>
-      products
-        .filter((product) =>
-          activeCategory === "Laptop"
-            ? product.category === "Laptop"
-            : product.category === activeCategory || product.brand === activeCategory
+    () => {
+      const matchingProducts = products.filter((product) =>
+        productMatchesCategory(product, activeCategory)
+      )
+
+      return matchingProducts
+        .concat(
+          products.filter(
+            (product) =>
+              !matchingProducts.some((match) => match.id === product.id)
+          )
         )
-        .concat(products.filter((product) => product.category !== activeCategory))
-        .slice(0, 5),
+        .slice(0, 12)
+    },
     [activeCategory]
   )
 
   const arrivalProducts = React.useMemo(
-    () =>
-      products
-        .filter((product) =>
-          arrivalTab === "Laptop"
-            ? product.category === "Laptop"
-            : product.category === arrivalTab || product.brand === arrivalTab
+    () => {
+      const matchingProducts = products.filter((product) =>
+        productMatchesCategory(product, arrivalTab)
+      )
+
+      return matchingProducts
+        .concat(
+          products.filter(
+            (product) =>
+              !matchingProducts.some((match) => match.id === product.id)
+          )
         )
-        .concat(products)
-        .filter(
-          (product, index, list) =>
-            list.findIndex((candidate) => candidate.id === product.id) === index
-        )
-        .slice(0, 5),
+        .slice(0, 12)
+    },
     [arrivalTab]
   )
 
@@ -345,7 +417,6 @@ export default function Storefront() {
     <main id="home" className="min-h-screen bg-[#fbfbfa] text-[#101322]">
       <StorefrontHeader
         totalItems={totalItems}
-        onCartOpen={() => setCartOpen(true)}
         onLoginOpen={() => setLoginOpen(true)}
       />
 
@@ -403,10 +474,13 @@ export default function Storefront() {
                     )}
 
                     <div className="mt-6 flex flex-wrap items-center gap-3">
-                      <Button className="h-11 rounded-[8px] bg-[#f97316] px-5 text-white hover:bg-[#ea580c] font-bold shadow-md shadow-orange-500/20">
+                      <Link
+                        href={activeHero.href}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] bg-[#f97316] px-5 text-sm font-bold text-white shadow-md shadow-orange-500/20 transition hover:bg-[#ea580c]"
+                      >
                         Shop now
                         <ArrowRight className="size-4" />
-                      </Button>
+                      </Link>
                       <span className={cn("text-lg font-black", activeHero.isLight ? "text-slate-800" : "text-[#fed7aa]")}>
                         {activeHero.price}
                       </span>
@@ -475,9 +549,12 @@ export default function Storefront() {
                 <p className="font-bold text-emerald-400">Offer Includes:</p>
                 <p className="text-slate-300 mt-1">Free delivery & setup assist in Kathmandu valley.</p>
               </div>
-              <Button className="w-full h-11 rounded-[8px] bg-white text-[#0f3426] hover:bg-slate-100 transition font-extrabold shadow-lg">
+              <Link
+                href="/section/projectors"
+                className="inline-flex h-11 w-full items-center justify-center rounded-[8px] bg-white text-sm font-extrabold text-[#0f3426] shadow-lg transition hover:bg-slate-100"
+              >
                 SHOP NOW
-              </Button>
+              </Link>
             </div>
           </div>
         </RevealSection>
@@ -496,10 +573,87 @@ export default function Storefront() {
                 Save up to 25% on top flagship devices and entry level smartphones.
               </p>
             </div>
-            <Button className="h-11 rounded-[8px] bg-white text-teal-800 hover:bg-slate-100 transition font-bold shadow-md">
+            <Link
+              href="/section/deals"
+              className="inline-flex h-11 items-center justify-center rounded-[8px] bg-white px-5 text-sm font-bold text-teal-800 shadow-md transition hover:bg-slate-100"
+            >
               Shop deals
-            </Button>
+            </Link>
           </div>
+        </RevealSection>
+
+        <RevealSection id="latest-phones" className="py-10">
+          <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f97316]">
+                Latest phones
+              </p>
+              <h2 className="text-2xl font-black tracking-tight text-[#101322] md:text-3xl">
+                Phones by Brand
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
+                New arrivals from iPhone, Samsung, Infinix, HONOR, Xiaomi,
+                OnePlus, OPPO, and vivo.
+              </p>
+            </div>
+            <Link
+              href={`/section/${activePhoneFilter.slug}`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[8px] bg-[#101322] px-4 text-sm font-bold text-white transition hover:bg-[#f97316]"
+            >
+              See all
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+
+          <div className="mb-5 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {phoneBrandFilters.map((filter) => (
+              <motion.button
+                key={filter.slug}
+                type="button"
+                whileHover={{ y: -2 }}
+                onClick={() => setActivePhoneBrand(filter.slug)}
+                className={cn(
+                  "h-10 shrink-0 rounded-[8px] border px-4 text-sm font-black transition",
+                  activePhoneBrand === filter.slug
+                    ? "border-[#f97316] bg-[#fff6ed] text-[#f97316]"
+                    : "border-[#e9e9ee] bg-white text-slate-600 hover:border-[#f97316]/50 hover:text-[#101322]"
+                )}
+              >
+                {filter.label}
+              </motion.button>
+            ))}
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
+            {phoneRowProducts.map((product) => (
+              <div
+                key={product.id}
+                className="w-[300px] shrink-0 sm:w-[330px] lg:w-[350px]"
+              >
+                <ProductCard product={product} onAdd={addToCart} />
+              </div>
+            ))}
+          </div>
+        </RevealSection>
+
+        <RevealSection className="py-8">
+          <SectionTitle
+            eyebrow="Computing"
+            title="Laptops & Work Machines"
+            action="See all"
+            actionHref="/section/laptops"
+          />
+          <ProductShelf items={laptopShelfProducts} onAdd={addToCart} />
+        </RevealSection>
+
+        <RevealSection className="py-8">
+          <SectionTitle
+            eyebrow="Setups"
+            title="Tech Accessories & Creator Gear"
+            action="See all"
+            actionHref="/section/tech-accessories"
+          />
+          <ProductShelf items={accessoryShelfProducts} onAdd={addToCart} />
         </RevealSection>
 
         {/* World Cup Special Offer Section */}
@@ -516,65 +670,61 @@ export default function Storefront() {
                   <p className="text-slate-300 text-sm font-semibold mt-0.5">Get a <span className="text-yellow-400 font-black">FREE JERSEY</span> with every purchase</p>
                 </div>
               </div>
-              <Button className="h-10 rounded-[8px] bg-blue-600 hover:bg-blue-700 text-white font-bold transition">
+              <Link
+                href="/section/world-cup"
+                className="inline-flex h-10 items-center justify-center rounded-[8px] bg-blue-600 px-4 text-sm font-bold text-white transition hover:bg-blue-700"
+              >
                 View all
-              </Button>
+              </Link>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-            {products.filter(p => ["lenovo-gaming-24", "wanbo-t2-max", "samsung-s24-ultra", "macbook-air-m3", "infinix-smart-10"].includes(p.id)).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAdd={addToCart}
-              />
-            ))}
-          </div>
+          <ProductShelf items={worldCupProducts} onAdd={addToCart} />
         </RevealSection>
 
-        <RevealSection id="products" className="py-10">
-          <SectionTitle
-            eyebrow="First to review"
-            title="Trending Products Now"
-            action="View all"
-          />
-          <div className="mb-6 flex gap-3 overflow-x-auto pb-2">
-            {categoryPills.map((category) => (
-              <motion.button
-                key={category.name}
-                type="button"
-                whileHover={{ y: -3, scale: 1.02 }}
-                onClick={() => setActiveCategory(category.name)}
-                className={cn(
-                  "flex min-w-28 flex-col items-center gap-2 rounded-[8px] border px-4 py-3 text-sm font-semibold transition",
-                  activeCategory === category.name
-                    ? "border-[#f97316] bg-[#fff6ed] text-[#f97316]"
-                    : "border-[#eeeeef] bg-white text-slate-600 hover:border-[#f97316]/50"
-                )}
-              >
-                <span
-                  className={cn(
-                    "grid size-12 place-items-center rounded-full transition",
-                    activeCategory === category.name
-                      ? "bg-[#f97316] text-white"
-                      : "bg-[#f5f5f6] text-[#2b0f52]"
-                  )}
-                >
-                  <category.icon className="size-5" />
-                </span>
-                {category.name}
-              </motion.button>
-            ))}
+        <RevealSection id="products" className="py-12 border-t border-slate-100">
+          <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div className="max-w-xl">
+              <h2 className="text-3xl font-black tracking-tight text-[#101322] md:text-4xl">
+                Trending Categories Now
+              </h2>
+              <p className="mt-2 text-sm font-semibold text-slate-500 leading-relaxed">
+                Genuine Electronics, Latest Launches, Unmatched Quality, and the Best Market Prices – All in One Click!
+              </p>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
+              {categoryPills.map((category) => {
+                const isActive = activeCategory === category.name
+                return (
+                  <button
+                    key={category.name}
+                    type="button"
+                    onClick={() => setActiveCategory(category.name)}
+                    className="flex flex-col items-center gap-2 group focus:outline-none shrink-0"
+                  >
+                    <div
+                      className={cn(
+                        "grid size-14 place-items-center rounded-full transition-all duration-300 shadow-sm",
+                        isActive
+                          ? "bg-[#f97316] text-white scale-105"
+                          : "bg-[#f5f5f6] text-[#2b0f52] hover:bg-[#fff6ed] hover:text-[#f97316]"
+                      )}
+                    >
+                      <category.icon className="size-5 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
+                    <span
+                      className={cn(
+                        "text-xs font-black transition-colors duration-300",
+                        isActive ? "text-[#f97316]" : "text-slate-600 hover:text-[#f97316]"
+                      )}
+                    >
+                      {category.name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-            {categoryProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAdd={addToCart}
-              />
-            ))}
-          </div>
+          <ProductShelf items={categoryProducts} onAdd={addToCart} />
         </RevealSection>
 
         <RevealSection className="grid gap-4 py-4 md:grid-cols-[1fr_1fr]">
@@ -585,9 +735,12 @@ export default function Storefront() {
               Everyday phone, sharp display, all-day battery. Available for
               pickup today.
             </p>
-            <Button className="mt-5 h-10 rounded-[8px] bg-[#2b0f52] text-white hover:bg-[#f97316]">
+            <Link
+              href="/section/samsung"
+              className="mt-5 inline-flex h-10 items-center justify-center rounded-[8px] bg-[#2b0f52] px-4 text-sm font-bold text-white transition hover:bg-[#f97316]"
+            >
               Rs. 84,999
-            </Button>
+            </Link>
           </div>
           <div className="rounded-[8px] bg-[#160f30] p-6 text-white">
             <p className="text-sm font-bold text-[#f97316]">Best deals on</p>
@@ -595,9 +748,12 @@ export default function Storefront() {
             <p className="mt-2 max-w-sm text-sm text-white/70">
               Tell us what you play or create. We match GPU, CPU and cooling.
             </p>
-            <Button className="mt-5 h-10 rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c]">
+            <Link
+              href="/section/tech-accessories"
+              className="mt-5 inline-flex h-10 items-center justify-center rounded-[8px] bg-[#f97316] px-4 text-sm font-bold text-white transition hover:bg-[#ea580c]"
+            >
               Build setup
-            </Button>
+            </Link>
           </div>
         </RevealSection>
 
@@ -638,13 +794,7 @@ export default function Storefront() {
               <span className="rounded-[6px] bg-[#fff6ed] px-2 py-1">09s</span>
             </div>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {products.slice(0, 6).map((product) => (
-              <div key={product.id} className="w-[240px] shrink-0">
-                <ProductCard product={product} compact onAdd={addToCart} />
-              </div>
-            ))}
-          </div>
+          <ProductShelf items={dealProducts} onAdd={addToCart} />
         </RevealSection>
 
         <RevealSection className="rounded-[8px] bg-[#eaf2ff] px-6 py-5">
@@ -669,8 +819,8 @@ export default function Storefront() {
 
         <RevealSection className="py-10">
           <SectionTitle title="New Arrivals at Store" />
-          <div className="mb-6 flex gap-2 overflow-x-auto">
-            {["Laptop", "Monitor", "Smart Phone", "Macbook", "Earbuds", "Headphone"].map(
+          <div className="mb-6 flex gap-2 overflow-x-auto scrollbar-none">
+            {["Laptop", "Monitor", "Smart Phone", "MacBook", "Earbuds", "Headphone"].map(
               (tab) => (
                 <button
                   key={tab}
@@ -688,15 +838,7 @@ export default function Storefront() {
               )
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-            {arrivalProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAdd={addToCart}
-              />
-            ))}
-          </div>
+          <ProductShelf items={arrivalProducts} onAdd={addToCart} />
         </RevealSection>
 
         <RevealSection className="py-8">
@@ -733,13 +875,13 @@ export default function Storefront() {
 
       <Dialog open={emiOpen} onOpenChange={setEmiOpen}>
         <DialogContent
-          className="max-h-[calc(100vh-2rem)] max-w-4xl overflow-y-auto rounded-[12px] border border-[#ececf1] bg-white p-0 shadow-2xl"
+          className="max-h-[calc(100vh-2rem)] w-full max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] border border-[#ececf1] bg-white p-0 shadow-2xl sm:max-w-[960px]"
           data-lenis-prevent
         >
-          <div className="grid md:grid-cols-[280px_1fr]">
-            <aside className="bg-[#101322] p-6 text-white md:min-h-[620px]">
+          <div className="grid max-h-[calc(100vh-2rem)] overflow-y-auto md:grid-cols-[300px_minmax(0,1fr)]">
+            <aside className="bg-[#101322] p-6 text-white md:min-h-[590px]">
               <div className="flex items-center gap-2">
-                <span className="grid size-10 place-items-center rounded-[8px] bg-white/10">
+                <span className="grid size-12 place-items-center rounded-[8px] bg-white/10">
                   <FileText className="size-5 text-[#f97316]" />
                 </span>
                 <div>
@@ -754,7 +896,7 @@ export default function Storefront() {
                 {emiDocuments.map((document) => (
                   <div
                     key={document}
-                    className="flex gap-3 rounded-[8px] border border-white/10 bg-white/[0.06] p-3 text-sm font-semibold text-white/85"
+                    className="flex gap-3 rounded-[8px] border border-white/10 bg-white/[0.06] p-4 text-base font-semibold leading-snug text-white/90"
                   >
                     <IdCard className="mt-0.5 size-4 shrink-0 text-[#f97316]" />
                     <span>{document}</span>
@@ -766,12 +908,13 @@ export default function Storefront() {
                 <p className="font-black">Basic rule</p>
                 <p className="mt-1 text-white/70">
                   Minimum 40% down payment with 0% interest on selected laptops,
-                  phones and tablets.
+                  phones and tablets. Citizenship is enough for the initial
+                  eligibility check in Nepal.
                 </p>
               </div>
             </aside>
 
-            <div className="p-6 md:p-8">
+            <div className="min-w-0 p-6 md:p-8">
               <DialogHeader>
                 <div className="mb-2 flex items-center gap-2">
                   <BadgePercent className="size-5 text-[#f97316]" />
@@ -780,7 +923,7 @@ export default function Storefront() {
                   </span>
                 </div>
                 <DialogTitle className="text-2xl font-black tracking-tight text-[#101322] md:text-3xl">
-                  EMI Calculator
+                  EMI Eligibility
                 </DialogTitle>
                 <DialogDescription className="text-sm text-slate-500">
                   Enter the product price and down payment to calculate your 0%
@@ -914,7 +1057,7 @@ export default function Storefront() {
                 <Button
                   type="button"
                   onClick={() => {
-                    showToast("EMI estimate ready. Please bring the listed documents.")
+                    showToast("EMI estimate ready. Please bring citizenship for verification.")
                     setEmiOpen(false)
                   }}
                   className="h-11 rounded-[8px] bg-[#101322] px-5 text-white hover:bg-[#f97316]"

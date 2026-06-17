@@ -113,7 +113,6 @@ export default function CartPage() {
     <main className="min-h-screen bg-[#f8f8f7] text-[#101322]">
       <StorefrontHeader
         totalItems={totalItems}
-        onCartOpen={() => setCartOpen(true)}
         onLoginOpen={() => setLoginOpen(true)}
       />
 
