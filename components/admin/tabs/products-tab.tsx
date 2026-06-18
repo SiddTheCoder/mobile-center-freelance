@@ -1,105 +1,1480 @@
-import { Package } from "lucide-react"
+"use client"
+
+import * as React from "react"
+import { 
+  Package, 
+  Search, 
+  Filter, 
+  CheckCircle, 
+  AlertTriangle, 
+  Trash2, 
+  Edit3, 
+  PlusCircle, 
+  UploadCloud, 
+  Check, 
+  X, 
+  ArrowRight,
+  Info,
+  RefreshCw
+} from "lucide-react"
 
 import { useAdminCollection } from "@/components/admin/admin-state"
 import {
   Cell,
-  type EditableField,
   Panel,
-  ResourceControls,
-  RowControls,
-  StatusBadge,
   TableShell,
+  StatusBadge,
+  RowControls
 } from "@/components/admin/admin-shared"
 import { formatPrice } from "@/lib/products"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
-const productFields: EditableField[] = [
-  { key: "name", label: "Product name" },
-  { key: "sku", label: "SKU" },
-  { key: "category", label: "Category" },
-  { key: "brand", label: "Brand" },
-  { key: "price", label: "Regular price", type: "number" },
-  { key: "sale", label: "Sale price", type: "number" },
-  { key: "stock", label: "Stock", type: "number" },
-  { key: "status", label: "Status", type: "select", options: ["Draft", "Published", "Low Stock", "Sold Out"] },
-  { key: "featured", label: "Featured", type: "checkbox" },
-]
+// Available system categories
+const VALID_CATEGORIES = ["Mobile", "Laptop", "Tablet", "Smartwatch", "Accessory"]
 
-const newProduct = {
-  name: "New Product",
-  sku: "NEW-SKU",
-  category: "Laptop",
-  brand: "Brand",
-  price: 0,
-  sale: 0,
-  stock: 0,
-  status: "Draft",
-  featured: false,
+// Helper function to parse CSV text
+function parseCSV(text: string): string[][] {
+  const result: string[][] = []
+  const lines = text.split(/\r?\n/)
+  for (const line of lines) {
+    if (!line.trim()) continue
+    const row: string[] = []
+    let current = ""
+    let inQuotes = false
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i]
+      if (char === '"') {
+        inQuotes = !inQuotes
+      } else if (char === ',' && !inQuotes) {
+        row.push(current.trim())
+        current = ""
+      } else {
+        current += char
+      }
+    }
+    row.push(current.trim())
+    result.push(row)
+  }
+  return result
 }
 
+// Sample CSV templates for demo
+const DEMO_IMPORT_CSV = `SKU,Product_Name,Category,Brand,Price_NPR,Stock_Quantity,Availability,Featured,Product_Status,Color,Condition
+APL-IP15P-128,Apple iPhone 15 Pro 128GB,Mobile,Apple,145000,15,In Stock,Yes,Published,Black,New
+SAM-S24-256,Samsung Galaxy S24 256GB,Mobile,Samsung,119000,0,Out of Stock,No,Published,Gray,New
+XIA-14-512,Xiaomi 14 512GB,Mobile,Xiaomi,99000,8,In Stock,Yes,Draft,Green,New
+BAD-SKU-1,Invalid Price Phone,Mobile,Generic,-5000,10,In Stock,No,Published,Black,New
+APL-IP15P-128,Duplicate SKU Phone,Mobile,Apple,140000,5,In Stock,No,Published,Gold,New
+XIA-14-512,Invalid Category Laptop,Desktop,Xiaomi,150000,3,In Stock,No,Published,Silver,New`
+
+const DEMO_UPDATE_CSV = `SKU,New_Price_NPR,New_Stock_Quantity,Availability,Product_Status
+MBA-M3-256,184999,10,In Stock,Published
+SAM-S24U-512,179999,0,Out of Stock,Published
+INVALID-SKU-999,50000,5,In Stock,Published
+WAN-T2MAX,21000,0,Out of Stock,Published`
+
 export function ProductsTab() {
-  const { rows } = useAdminCollection("products")
+  const { rows, addRow, updateRow, deleteRow } = useAdminCollection("products")
+  const [activeSubTab, setActiveSubTab] = React.useState<"list" | "manual" | "import" | "update">("list")
+
+  // Search & filter
+  const [searchTerm, setSearchTerm] = React.useState("")
+  const [categoryFilter, setCategoryFilter] = React.useState("All")
+
+  const filteredProducts = React.useMemo(() => {
+    return rows.filter((p) => {
+      const matchesSearch = 
+        String(p.name).toLowerCase().includes(searchTerm.toLowerCase()) || 
+        String(p.sku).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(p.brand).toLowerCase().includes(searchTerm.toLowerCase())
+      
+      const matchesCategory = categoryFilter === "All" || String(p.category) === categoryFilter
+      return matchesSearch && matchesCategory
+    })
+  }, [rows, searchTerm, categoryFilter])
+
+  // --- MANUAL ADD STATE ---
+  const [manualForm, setManualForm] = React.useState({
+    sku: "",
+    category: "Mobile",
+    brand: "",
+    name: "",
+    price: "",
+    stock: "",
+    availability: "In Stock",
+    featured: "No",
+    status: "Published",
+    // Optionals
+    model: "",
+    variant: "",
+    ram: "",
+    storage: "",
+    processor: "",
+    color: "",
+    condition: "New",
+    oldPrice: "",
+    warranty: "",
+    shortDesc: "",
+    images: "",
+    supplier: "",
+    supplierCode: "",
+    tags: "",
+    barcode: ""
+  })
+  const [manualErrors, setManualErrors] = React.useState<Record<string, string>>({})
+  const [manualSuccess, setManualSuccess] = React.useState(false)
+
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const errors: Record<string, string> = {}
+
+    // Validation Rules
+    if (!manualForm.sku.trim()) errors.sku = "SKU is required."
+    else if (rows.some(p => String(p.sku).toLowerCase() === manualForm.sku.trim().toLowerCase())) {
+      errors.sku = "SKU must be unique per shop."
+    }
+
+    if (!VALID_CATEGORIES.includes(manualForm.category)) {
+      errors.category = `Category must be one of: ${VALID_CATEGORIES.join(", ")}`
+    }
+
+    if (!manualForm.brand.trim()) errors.brand = "Brand is required."
+    if (!manualForm.name.trim()) errors.name = "Product name is required."
+
+    const priceNum = Number(manualForm.price)
+    if (!manualForm.price || isNaN(priceNum) || priceNum <= 0) {
+      errors.price = "Price_NPR must be greater than 0."
+    }
+
+    const stockNum = Number(manualForm.stock)
+    if (manualForm.stock === "" || isNaN(stockNum) || stockNum < 0 || !Number.isInteger(stockNum)) {
+      errors.stock = "Stock_Quantity must be an integer >= 0."
+    }
+
+    if (manualForm.oldPrice) {
+      const oldPriceNum = Number(manualForm.oldPrice)
+      if (isNaN(oldPriceNum) || oldPriceNum < priceNum) {
+        errors.oldPrice = "Old_Price_NPR should be empty or greater than/equal to Price_NPR."
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setManualErrors(errors)
+      return
+    }
+
+    setManualErrors({})
+    // Add in-memory row mapped to store format
+    addRow({
+      name: manualForm.name,
+      sku: manualForm.sku.trim().toUpperCase(),
+      category: manualForm.category,
+      brand: manualForm.brand,
+      price: priceNum,
+      sale: manualForm.oldPrice ? Number(manualForm.oldPrice) : priceNum,
+      stock: stockNum,
+      status: manualForm.status,
+      featured: manualForm.featured === "Yes",
+      availability: manualForm.availability,
+      model: manualForm.model,
+      variant: manualForm.variant,
+      ram: manualForm.ram,
+      storage: manualForm.storage,
+      processor: manualForm.processor,
+      color: manualForm.color,
+      condition: manualForm.condition,
+      warranty: manualForm.warranty,
+      shortDesc: manualForm.shortDesc,
+      images: manualForm.images,
+      supplier: manualForm.supplier,
+      supplierCode: manualForm.supplierCode,
+      tags: manualForm.tags,
+      barcode: manualForm.barcode
+    })
+
+    setManualSuccess(true)
+    // Clear form
+    setManualForm({
+      sku: "",
+      category: "Mobile",
+      brand: "",
+      name: "",
+      price: "",
+      stock: "",
+      availability: "In Stock",
+      featured: "No",
+      status: "Published",
+      model: "",
+      variant: "",
+      ram: "",
+      storage: "",
+      processor: "",
+      color: "",
+      condition: "New",
+      oldPrice: "",
+      warranty: "",
+      shortDesc: "",
+      images: "",
+      supplier: "",
+      supplierCode: "",
+      tags: "",
+      barcode: ""
+    })
+  }
+
+  // --- BULK IMPORT STATE ---
+  const [importStep, setImportStep] = React.useState<1 | 2 | 3 | 4>(1)
+  const [csvContent, setCsvContent] = React.useState("")
+  const [csvHeaders, setCsvHeaders] = React.useState<string[]>([])
+  const [csvDataRows, setCsvDataRows] = React.useState<string[][]>([])
+  
+  // Mappings system field -> CSV header index
+  const [columnMappings, setColumnMappings] = React.useState<Record<string, string>>({
+    sku: "",
+    category: "",
+    brand: "",
+    name: "",
+    price: "",
+    stock: "",
+    availability: "",
+    featured: "",
+    status: ""
+  })
+
+  // Parsed and validated rows
+  const [validatedImportRows, setValidatedImportRows] = React.useState<any[]>([])
+  const [importSummary, setImportSummary] = React.useState({
+    total: 0,
+    valid: 0,
+    warnings: 0,
+    errors: 0
+  })
+
+  const loadDemoImport = () => {
+    handleRawCsvLoad(DEMO_IMPORT_CSV)
+  }
+
+  const handleRawCsvLoad = (csvText: string) => {
+    setCsvContent(csvText)
+    const parsed = parseCSV(csvText)
+    if (parsed.length < 2) return
+
+    const headers = parsed[0]
+    const data = parsed.slice(1)
+    setCsvHeaders(headers)
+    setCsvDataRows(data)
+
+    // Automap headers
+    const autoMap: Record<string, string> = {}
+    const systemFields = ["sku", "category", "brand", "name", "price", "stock", "availability", "featured", "status"]
+    
+    systemFields.forEach(field => {
+      let matchedHeader = ""
+      const fLower = field.toLowerCase()
+      headers.forEach(h => {
+        const hLower = h.toLowerCase()
+        if (hLower === fLower) matchedHeader = h
+        else if (fLower === "name" && (hLower === "product_name" || hLower === "item" || hLower === "title")) matchedHeader = h
+        else if (fLower === "price" && (hLower === "price_npr" || hLower === "mrp" || hLower === "cost")) matchedHeader = h
+        else if (fLower === "stock" && (hLower === "stock_quantity" || hLower === "qty" || hLower === "quantity")) matchedHeader = h
+        else if (fLower === "status" && (hLower === "product_status" || hLower === "state")) matchedHeader = h
+      })
+      autoMap[field] = matchedHeader || headers[0] || ""
+    })
+    
+    setColumnMappings(autoMap)
+    setImportStep(2)
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        handleRawCsvLoad(event.target.result as string)
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  const startValidation = () => {
+    const parsedRows: any[] = []
+    let total = csvDataRows.length
+    let validCount = 0
+    let errorCount = 0
+
+    // Keep track of SKUs within the import to check duplicates
+    const importSkuSet = new Set<string>()
+
+    csvDataRows.forEach((row, index) => {
+      const getValue = (field: string) => {
+        const headerName = columnMappings[field]
+        const headerIndex = csvHeaders.indexOf(headerName)
+        return headerIndex !== -1 ? row[headerIndex] : ""
+      }
+
+      const rawSku = getValue("sku")?.trim()
+      const rawCategory = getValue("category")?.trim()
+      const rawBrand = getValue("brand")?.trim()
+      const rawName = getValue("name")?.trim()
+      const rawPrice = getValue("price")?.trim()
+      const rawStock = getValue("stock")?.trim()
+      const rawAvailability = getValue("availability")?.trim()
+      const rawFeatured = getValue("featured")?.trim()
+      const rawStatus = getValue("status")?.trim()
+
+      const errors: string[] = []
+
+      // Validate
+      if (!rawSku) errors.push("SKU is required.")
+      else {
+        const skuUpper = rawSku.toUpperCase()
+        if (importSkuSet.has(skuUpper)) {
+          errors.push(`Duplicate SKU '${rawSku}' inside import sheet.`)
+        } else {
+          importSkuSet.add(skuUpper)
+        }
+
+        if (rows.some(p => String(p.sku).toUpperCase() === skuUpper)) {
+          errors.push(`SKU '${rawSku}' already exists in store catalog.`)
+        }
+      }
+
+      if (!rawCategory) errors.push("Category is required.")
+      else if (!VALID_CATEGORIES.includes(rawCategory)) {
+        errors.push(`Category '${rawCategory}' must be Mobile, Laptop, Tablet, Smartwatch, or Accessory.`)
+      }
+
+      if (!rawBrand) errors.push("Brand is required.")
+      if (!rawName) errors.push("Product name is required.")
+
+      const priceNum = Number(rawPrice)
+      if (!rawPrice || isNaN(priceNum) || priceNum <= 0) {
+        errors.push("Price must be greater than 0.")
+      }
+
+      const stockNum = Number(rawStock)
+      if (rawStock === "" || isNaN(stockNum) || stockNum < 0 || !Number.isInteger(stockNum)) {
+        errors.push("Stock must be an integer >= 0.")
+      }
+
+      let parsedAvailability = rawAvailability || "In Stock"
+      if (parsedAvailability && !["In Stock", "Out of Stock", "Preorder"].includes(parsedAvailability)) {
+        errors.push("Availability must be In Stock, Out of Stock, or Preorder.")
+      }
+
+      const parsedFeatured = rawFeatured === "Yes" || rawFeatured === "true" || rawFeatured === "1"
+      const parsedStatus = rawStatus || "Published"
+
+      const isValid = errors.length === 0
+      if (isValid) validCount++
+      else errorCount++
+
+      parsedRows.push({
+        index: index + 1,
+        sku: rawSku || "MISSING",
+        category: rawCategory,
+        brand: rawBrand,
+        name: rawName,
+        price: priceNum,
+        stock: stockNum,
+        availability: parsedAvailability,
+        featured: parsedFeatured,
+        status: parsedStatus,
+        errors,
+        isValid
+      })
+    })
+
+    setValidatedImportRows(parsedRows)
+    setImportSummary({
+      total,
+      valid: validCount,
+      warnings: 0,
+      errors: errorCount
+    })
+
+    setImportStep(3)
+  }
+
+  const confirmImport = () => {
+    // Add only valid rows
+    const validRows = validatedImportRows.filter(r => r.isValid)
+    validRows.forEach(row => {
+      addRow({
+        name: row.name,
+        sku: row.sku.toUpperCase(),
+        category: row.category,
+        brand: row.brand,
+        price: row.price,
+        sale: row.price,
+        stock: row.stock,
+        status: row.status,
+        featured: row.featured,
+        availability: row.availability
+      })
+    })
+    setImportStep(4)
+  }
+
+  // --- BULK UPDATE STATE ---
+  const [updateStep, setUpdateStep] = React.useState<1 | 2 | 3>(1)
+  const [updateCsvContent, setUpdateCsvContent] = React.useState("")
+  const [validatedUpdateRows, setValidatedUpdateRows] = React.useState<any[]>([])
+  const [updateSummary, setUpdateSummary] = React.useState({
+    total: 0,
+    updated: 0,
+    notFound: 0,
+    errors: 0
+  })
+
+  const loadDemoUpdate = () => {
+    handleUpdateCsvLoad(DEMO_UPDATE_CSV)
+  }
+
+  const handleUpdateFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        handleUpdateCsvLoad(event.target.result as string)
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  const handleUpdateCsvLoad = (csvText: string) => {
+    setUpdateCsvContent(csvText)
+    const parsed = parseCSV(csvText)
+    if (parsed.length < 2) return
+
+    const headers = parsed[0].map(h => h.toLowerCase().trim())
+    const dataRows = parsed.slice(1)
+
+    const skuIdx = headers.indexOf("sku")
+    const priceIdx = headers.indexOf("new_price_npr") !== -1 ? headers.indexOf("new_price_npr") : headers.indexOf("price")
+    const stockIdx = headers.indexOf("new_stock_quantity") !== -1 ? headers.indexOf("new_stock_quantity") : headers.indexOf("stock")
+    const availIdx = headers.indexOf("availability")
+    const statusIdx = headers.indexOf("product_status") !== -1 ? headers.indexOf("product_status") : headers.indexOf("status")
+
+    if (skuIdx === -1) {
+      alert("CSV must contain a 'SKU' column.")
+      return
+    }
+
+    const updates: any[] = []
+    let updatedCount = 0
+    let notFoundCount = 0
+    let errorCount = 0
+
+    dataRows.forEach((row, index) => {
+      const sku = row[skuIdx]?.trim()
+      const rawPrice = priceIdx !== -1 ? row[priceIdx]?.trim() : ""
+      const rawStock = stockIdx !== -1 ? row[stockIdx]?.trim() : ""
+      const rawAvail = availIdx !== -1 ? row[availIdx]?.trim() : ""
+      const rawStatus = statusIdx !== -1 ? row[statusIdx]?.trim() : ""
+
+      const errors: string[] = []
+      
+      if (!sku) {
+        errors.push("SKU is empty on row " + (index + 2))
+        errorCount++
+        updates.push({ sku: "EMPTY", errors, isValid: false })
+        return
+      }
+
+      // Check catalog matching
+      const catalogProduct = rows.find(p => String(p.sku).toUpperCase() === sku.toUpperCase())
+      const exists = !!catalogProduct
+
+      let priceNum = rawPrice ? Number(rawPrice) : null
+      let stockNum = rawStock ? Number(rawStock) : null
+
+      if (priceNum !== null && (isNaN(priceNum) || priceNum <= 0)) {
+        errors.push("New Price must be greater than 0.")
+      }
+
+      if (stockNum !== null && (isNaN(stockNum) || stockNum < 0 || !Number.isInteger(stockNum))) {
+        errors.push("New Stock must be an integer >= 0.")
+      }
+
+      // Auto-set availability if stock becomes 0
+      let finalAvailability = rawAvail || (exists ? String(catalogProduct.availability) : "In Stock")
+      if (stockNum === 0) {
+        finalAvailability = "Out of Stock"
+      }
+
+      if (finalAvailability && !["In Stock", "Out of Stock", "Preorder"].includes(finalAvailability)) {
+        errors.push("Availability must be In Stock, Out of Stock, or Preorder.")
+      }
+
+      if (!exists) {
+        errors.push(`SKU '${sku}' not found in catalog. Row will be skipped.`)
+        notFoundCount++
+      }
+
+      const isValid = errors.length === 0
+      if (isValid && exists) {
+        updatedCount++
+      } else if (!exists) {
+        // counted in notFoundCount
+      } else {
+        errorCount++
+      }
+
+      updates.push({
+        index: index + 1,
+        sku: sku.toUpperCase(),
+        catalogProduct,
+        exists,
+        newPrice: priceNum,
+        newStock: stockNum,
+        availability: finalAvailability,
+        status: rawStatus || (exists ? String(catalogProduct.status) : "Published"),
+        errors,
+        isValid: isValid && exists
+      })
+    })
+
+    setValidatedUpdateRows(updates)
+    setUpdateSummary({
+      total: dataRows.length,
+      updated: updatedCount,
+      notFound: notFoundCount,
+      errors: errorCount
+    })
+    setUpdateStep(2)
+  }
+
+  const confirmBulkUpdate = () => {
+    validatedUpdateRows.forEach(upd => {
+      if (!upd.isValid || !upd.catalogProduct) return
+      
+      // Update catalog row values
+      const updatedFields: any = {}
+      if (upd.newPrice !== null) updatedFields.price = upd.newPrice
+      if (upd.newStock !== null) {
+        updatedFields.stock = upd.newStock
+        // Auto set status tags for list
+        if (upd.newStock === 0) updatedFields.status = "Sold Out"
+        else if (upd.newStock <= 3) updatedFields.status = "Low Stock"
+        else updatedFields.status = upd.status || "Published"
+      }
+      if (upd.availability) updatedFields.availability = upd.availability
+      
+      updateRow(upd.catalogProduct._id, updatedFields)
+    })
+    setUpdateStep(3)
+  }
+
+  // Categories list options
+  const categoryOptions = ["All", ...VALID_CATEGORIES, "Monitor", "Projector", "Earbuds", "Headphone"]
 
   return (
     <div className="space-y-4">
-      <Panel
-        title="Product List"
-        description="Add, edit, duplicate, publish, unpublish, feature, or mark products sold out"
-        action={
-          <ResourceControls
-            collection="products"
-            fields={productFields}
-            newItem={newProduct}
-            createLabel="Add product"
-          />
-        }
-      >
-        <TableShell columns={["Product", "SKU", "Category", "Brand", "Price", "Sale", "Stock", "Status", "Featured", ""]}>
-          {rows.map((product) => (
-            <tr key={String(product._id)} className="hover:bg-[#fbfbfa]">
-              <Cell>
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-[8px] bg-[#f5f5f6]">
-                    <Package className="size-4 text-slate-500" />
-                  </span>
-                  <span className="font-bold text-[#101322]">{product.name}</span>
-                </div>
-              </Cell>
-              <Cell className="font-semibold text-slate-500">{product.sku}</Cell>
-              <Cell>{product.category}</Cell>
-              <Cell>{product.brand}</Cell>
-              <Cell>{formatPrice(Number(product.price))}</Cell>
-              <Cell className="font-black">{formatPrice(Number(product.sale))}</Cell>
-              <Cell>{product.stock}</Cell>
-              <Cell><StatusBadge status={String(product.status)} /></Cell>
-              <Cell>{product.featured ? "Yes" : "No"}</Cell>
-              <Cell>
-                <RowControls collection="products" row={product} fields={productFields} />
-              </Cell>
-            </tr>
-          ))}
-        </TableShell>
-      </Panel>
+      {/* Sub tabs navigation */}
+      <div className="flex border-b border-slate-200 gap-1 bg-white p-1 rounded-[10px] shadow-sm">
+        {[
+          { id: "list", label: "Product List", icon: Package },
+          { id: "manual", label: "Manual Add Product", icon: PlusCircle },
+          { id: "import", label: "Bulk Product Import", icon: UploadCloud },
+          { id: "update", label: "Bulk Price/Stock Update", icon: RefreshCw },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              setActiveSubTab(tab.id as any)
+              // Reset status
+              setManualSuccess(false)
+              setImportStep(1)
+              setUpdateStep(1)
+            }}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-[8px] transition duration-200 cursor-pointer",
+              activeSubTab === tab.id
+                ? "bg-[#fff6ed] text-[#f97316] shadow-inner"
+                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            )}
+          >
+            <tab.icon className="size-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      <Panel title="Add/Edit Product Form Sections" description="The data groups the admin form should expose">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            "Basic Info",
-            "Images / Gallery",
-            "Pricing",
-            "Inventory",
-            "Variants",
-            "Specifications",
-            "Shipping & Warranty",
-            "SEO",
-            "Related Products",
-            "Publish Settings",
-          ].map((section) => (
-            <div key={section} className="rounded-[8px] border border-[#eef0f4] p-3 font-bold">
-              {section}
+      {/* 1. PRODUCT LIST VIEW */}
+      {activeSubTab === "list" && (
+        <Panel 
+          title={`Store Catalog (${filteredProducts.length} items)`}
+          description="Catalog dashboard for in-store inventory and storefront items."
+        >
+          {/* Controls */}
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-slate-50/60 p-3 rounded-[8px] border border-slate-100">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search SKU, name, brand..."
+                className="pl-9 h-10 border-slate-200"
+              />
             </div>
-          ))}
-        </div>
-      </Panel>
+            <div className="flex items-center gap-2">
+              <Filter className="size-4 text-slate-400" />
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none"
+              >
+                {categoryOptions.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <TableShell columns={["Product", "SKU", "Category", "Brand", "Price", "Stock", "Status", "Featured", "Availability", ""]}>
+            {filteredProducts.map((product) => (
+              <tr key={String(product._id)} className="hover:bg-[#fffaf4]/20 transition">
+                <Cell>
+                  <div className="flex items-center gap-3">
+                    <span className="grid size-10 place-items-center rounded-[8px] bg-[#f5f5f6]">
+                      <Package className="size-4 text-slate-500" />
+                    </span>
+                    <div>
+                      <span className="font-bold text-[#101322] block line-clamp-1">{product.name}</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{product.brand}</span>
+                    </div>
+                  </div>
+                </Cell>
+                <Cell className="font-semibold text-slate-500">{product.sku}</Cell>
+                <Cell className="text-xs font-semibold text-slate-600">{product.category}</Cell>
+                <Cell>{product.brand}</Cell>
+                <Cell className="font-black text-[#101322]">{formatPrice(Number(product.price))}</Cell>
+                <Cell className="font-semibold">{product.stock}</Cell>
+                <Cell><StatusBadge status={String(product.status)} /></Cell>
+                <Cell>
+                  <span className={cn("text-xs font-extrabold px-1.5 py-0.5 rounded", product.featured ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-500")}>
+                    {product.featured ? "Yes" : "No"}
+                  </span>
+                </Cell>
+                <Cell>
+                  <span className={cn("text-xs font-bold", String(product.availability || "In Stock") === "In Stock" ? "text-emerald-600" : "text-rose-500")}>
+                    {String(product.availability || "In Stock")}
+                  </span>
+                </Cell>
+                <Cell>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => deleteRow(String(product._id))}
+                      className="rounded-[8px] text-slate-500 hover:text-rose-500 cursor-pointer"
+                      aria-label="Delete product"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </Cell>
+              </tr>
+            ))}
+          </TableShell>
+        </Panel>
+      )}
+
+      {/* 2. MANUAL ADD PRODUCT FORM */}
+      {activeSubTab === "manual" && (
+        <Panel 
+          title="Manual Single Product Registration"
+          description="Fill out the fields to add a single product manually to catalog database."
+        >
+          {manualSuccess ? (
+            <div className="text-center py-10 space-y-4 max-w-md mx-auto">
+              <div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                <Check className="size-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-slate-900">Product Registered Successfully!</h3>
+                <p className="text-sm text-slate-500">
+                  The new item has been added to your catalog and is active in-memory.
+                </p>
+              </div>
+              <div className="flex gap-2 justify-center pt-2">
+                <Button
+                  onClick={() => setManualSuccess(false)}
+                  className="rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c]"
+                >
+                  Add Another Product
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveSubTab("list")}
+                  className="rounded-[8px]"
+                >
+                  View Product List
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleManualSubmit} className="space-y-6">
+              <div className="bg-slate-50/80 p-4 rounded-[10px] border border-slate-100">
+                <h3 className="text-xs font-black text-[#f97316] uppercase tracking-wider mb-4">Required Parameters</h3>
+                
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">SKU (Unique)</label>
+                    <Input
+                      value={manualForm.sku}
+                      onChange={(e) => setManualForm({ ...manualForm, sku: e.target.value })}
+                      placeholder="e.g. MBA-M3-512"
+                      className={cn("h-10 border-slate-200 bg-white", manualErrors.sku && "border-rose-500 focus-visible:ring-rose-500/20")}
+                    />
+                    {manualErrors.sku && <span className="text-[10px] text-rose-500 font-bold block">{manualErrors.sku}</span>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Category</label>
+                    <select
+                      value={manualForm.category}
+                      onChange={(e) => setManualForm({ ...manualForm, category: e.target.value })}
+                      className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                    >
+                      {VALID_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Brand</label>
+                    <Input
+                      value={manualForm.brand}
+                      onChange={(e) => setManualForm({ ...manualForm, brand: e.target.value })}
+                      placeholder="e.g. Apple"
+                      className={cn("h-10 border-slate-200 bg-white", manualErrors.brand && "border-rose-500")}
+                    />
+                    {manualErrors.brand && <span className="text-[10px] text-rose-500 font-bold block">{manualErrors.brand}</span>}
+                  </div>
+
+                  <div className="space-y-1 sm:col-span-3">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Product Name</label>
+                    <Input
+                      value={manualForm.name}
+                      onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
+                      placeholder="e.g. Apple MacBook Pro 14 M3 Max"
+                      className={cn("h-10 border-slate-200 bg-white", manualErrors.name && "border-rose-500")}
+                    />
+                    {manualErrors.name && <span className="text-[10px] text-rose-500 font-bold block">{manualErrors.name}</span>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Price (NPR)</label>
+                    <Input
+                      type="number"
+                      value={manualForm.price}
+                      onChange={(e) => setManualForm({ ...manualForm, price: e.target.value })}
+                      placeholder="e.g. 245000"
+                      className={cn("h-10 border-slate-200 bg-white", manualErrors.price && "border-rose-500")}
+                    />
+                    {manualErrors.price && <span className="text-[10px] text-rose-500 font-bold block">{manualErrors.price}</span>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Stock Quantity</label>
+                    <Input
+                      type="number"
+                      value={manualForm.stock}
+                      onChange={(e) => setManualForm({ ...manualForm, stock: e.target.value })}
+                      placeholder="e.g. 5"
+                      className={cn("h-10 border-slate-200 bg-white", manualErrors.stock && "border-rose-500")}
+                    />
+                    {manualErrors.stock && <span className="text-[10px] text-rose-500 font-bold block">{manualErrors.stock}</span>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Availability</label>
+                    <select
+                      value={manualForm.availability}
+                      onChange={(e) => setManualForm({ ...manualForm, availability: e.target.value })}
+                      className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                    >
+                      {["In Stock", "Out of Stock", "Preorder"].map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Featured On Site</label>
+                    <select
+                      value={manualForm.featured}
+                      onChange={(e) => setManualForm({ ...manualForm, featured: e.target.value })}
+                      className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                    >
+                      {["No", "Yes"].map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Product Status</label>
+                    <select
+                      value={manualForm.status}
+                      onChange={(e) => setManualForm({ ...manualForm, status: e.target.value })}
+                      className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                    >
+                      {["Published", "Draft"].map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Optional Section */}
+              <div className="border border-slate-100 rounded-[10px] overflow-hidden">
+                <div className="bg-slate-50/50 p-3 px-4 border-b border-slate-100">
+                  <h3 className="text-xs font-black text-slate-600 uppercase tracking-wider">Optional Details / Specs</h3>
+                </div>
+                <div className="p-4 grid gap-4 sm:grid-cols-4 bg-white">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Model Name</label>
+                    <Input
+                      value={manualForm.model}
+                      onChange={(e) => setManualForm({ ...manualForm, model: e.target.value })}
+                      placeholder="e.g. Pro 14"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Variant/Details</label>
+                    <Input
+                      value={manualForm.variant}
+                      onChange={(e) => setManualForm({ ...manualForm, variant: e.target.value })}
+                      placeholder="e.g. M3 Max Chip"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">RAM</label>
+                    <Input
+                      value={manualForm.ram}
+                      onChange={(e) => setManualForm({ ...manualForm, ram: e.target.value })}
+                      placeholder="e.g. 36GB"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Storage Size</label>
+                    <Input
+                      value={manualForm.storage}
+                      onChange={(e) => setManualForm({ ...manualForm, storage: e.target.value })}
+                      placeholder="e.g. 1TB SSD"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Processor/Chipset</label>
+                    <Input
+                      value={manualForm.processor}
+                      onChange={(e) => setManualForm({ ...manualForm, processor: e.target.value })}
+                      placeholder="e.g. 16-Core GPU"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Color</label>
+                    <Input
+                      value={manualForm.color}
+                      onChange={(e) => setManualForm({ ...manualForm, color: e.target.value })}
+                      placeholder="e.g. Space Black"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Condition</label>
+                    <select
+                      value={manualForm.condition}
+                      onChange={(e) => setManualForm({ ...manualForm, condition: e.target.value })}
+                      className="w-full h-9 px-2 rounded-[8px] border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none"
+                    >
+                      {["New", "Refurbished", "Pre-Owned"].map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Old Price (NPR)</label>
+                    <Input
+                      type="number"
+                      value={manualForm.oldPrice}
+                      onChange={(e) => setManualForm({ ...manualForm, oldPrice: e.target.value })}
+                      placeholder="e.g. 260000"
+                      className={cn("h-9 border-slate-200 text-xs", manualErrors.oldPrice && "border-rose-500")}
+                    />
+                    {manualErrors.oldPrice && <span className="text-[9px] text-rose-500 font-bold block">{manualErrors.oldPrice}</span>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Warranty Term</label>
+                    <Input
+                      value={manualForm.warranty}
+                      onChange={(e) => setManualForm({ ...manualForm, warranty: e.target.value })}
+                      placeholder="e.g. 1 Year Store Warranty"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-3">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Short Description</label>
+                    <Input
+                      value={manualForm.shortDesc}
+                      onChange={(e) => setManualForm({ ...manualForm, shortDesc: e.target.value })}
+                      placeholder="Enter short marketing brief..."
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Image URLs (comma separated)</label>
+                    <Input
+                      value={manualForm.images}
+                      onChange={(e) => setManualForm({ ...manualForm, images: e.target.value })}
+                      placeholder="http://image.url/pic.png"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Supplier Name</label>
+                    <Input
+                      value={manualForm.supplier}
+                      onChange={(e) => setManualForm({ ...manualForm, supplier: e.target.value })}
+                      placeholder="e.g. Apple Distributors Nepal"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Supplier Code</label>
+                    <Input
+                      value={manualForm.supplierCode}
+                      onChange={(e) => setManualForm({ ...manualForm, supplierCode: e.target.value })}
+                      placeholder="e.g. SUP-APL-KT"
+                      className="h-9 border-slate-200 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setActiveSubTab("list")}
+                  className="rounded-[8px] h-11"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="rounded-[8px] bg-[#f97316] hover:bg-[#ea580c] text-white font-bold h-11 px-6 shadow-md shadow-orange-500/10 cursor-pointer"
+                >
+                  Save to Catalog
+                </Button>
+              </div>
+            </form>
+          )}
+        </Panel>
+      )}
+
+      {/* 3. BULK PRODUCT IMPORT */}
+      {activeSubTab === "import" && (
+        <Panel 
+          title="Bulk Product Import Manager"
+          description="Import products in bulk using a structured CSV sheet."
+        >
+          {/* Step indicators */}
+          <div className="mb-6 grid grid-cols-4 gap-2 text-center text-xs font-bold border-b border-slate-100 pb-3">
+            {[
+              { num: 1, label: "Upload Sheet" },
+              { num: 2, label: "Map Columns" },
+              { num: 3, label: "Validate & Preview" },
+              { num: 4, label: "Import Status" }
+            ].map((step) => (
+              <div 
+                key={step.num} 
+                className={cn(
+                  "pb-1 border-b-2 transition duration-200", 
+                  importStep === step.num 
+                    ? "border-[#f97316] text-[#f97316]" 
+                    : importStep > step.num 
+                      ? "border-emerald-500 text-emerald-600" 
+                      : "border-transparent text-slate-400"
+                )}
+              >
+                Step {step.num}: {step.label}
+              </div>
+            ))}
+          </div>
+
+          {/* STEP 1: UPLOAD FILE */}
+          {importStep === 1 && (
+            <div className="space-y-6 text-center py-10 max-w-lg mx-auto">
+              <div className="mx-auto grid size-20 place-items-center rounded-full bg-slate-50 border border-slate-100 text-slate-400">
+                <UploadCloud className="size-10" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-black text-slate-800">Select or Drag CSV File</h3>
+                <p className="text-xs text-slate-500">
+                  Upload a standard product catalog file. Map headers in the next step.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                <Button
+                  onClick={loadDemoImport}
+                  className="rounded-[8px] bg-slate-900 hover:bg-slate-800 text-white font-bold h-11"
+                >
+                  Load Demo Import Data
+                </Button>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    id="csv-file-input"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-[8px] h-11 border-dashed border-2 hover:border-[#f97316]/50"
+                  >
+                    Upload Custom CSV
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-100 rounded-[8px] p-4 text-left text-xs text-slate-500 space-y-2 mt-4">
+                <p className="font-bold text-slate-700 flex items-center gap-1">
+                  <Info className="size-3.5 text-[#f97316]" /> Schema Requirements
+                </p>
+                <ul className="list-disc pl-4 space-y-1 font-medium">
+                  <li>Category must be Mobile, Laptop, Tablet, Smartwatch, or Accessory.</li>
+                  <li>Price must be positive, Stock must be non-negative integer.</li>
+                  <li>SKU values must be unique in shop database.</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: COLUMN MAPPING */}
+          {importStep === 2 && (
+            <div className="space-y-6">
+              <div className="bg-amber-50/70 border border-amber-100 p-3 rounded-[8px] text-xs font-semibold text-slate-600 flex items-center gap-2">
+                <Info className="size-4 text-amber-500 shrink-0" />
+                Please map system fields to match the headers detected in your uploaded CSV.
+              </div>
+
+              <div className="border border-slate-100 rounded-[10px] bg-white overflow-hidden">
+                <div className="grid grid-cols-[200px_1fr] border-b border-slate-100 bg-slate-50/50 p-3 text-xs font-black uppercase tracking-wider text-slate-400">
+                  <div>Required System Field</div>
+                  <div>Select CSV Column Header</div>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                  {Object.keys(columnMappings).map((field) => (
+                    <div key={field} className="grid grid-cols-[200px_1fr] items-center p-3.5">
+                      <div className="text-sm font-bold text-slate-700 capitalize">
+                        {field.replace("_", " ")} <span className="text-rose-500">*</span>
+                      </div>
+                      <div>
+                        <select
+                          value={columnMappings[field]}
+                          onChange={(e) => setColumnMappings({ ...columnMappings, [field]: e.target.value })}
+                          className="h-10 w-full max-w-sm px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                        >
+                          {csvHeaders.map((h) => (
+                            <option key={h} value={h}>{h}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setImportStep(1)}
+                  className="rounded-[8px]"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={startValidation}
+                  className="rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c] font-bold"
+                >
+                  Validate Data Sheet
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: VALIDATE & PREVIEW */}
+          {importStep === 3 && (
+            <div className="space-y-6">
+              {/* Report Panel */}
+              <div className="grid gap-3 sm:grid-cols-4">
+                <div className="bg-slate-50 border border-slate-100 rounded-[8px] p-4 text-center">
+                  <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Total Rows</span>
+                  <span className="text-2xl font-black text-slate-700">{importSummary.total}</span>
+                </div>
+                <div className="bg-emerald-50/70 border border-emerald-100 rounded-[8px] p-4 text-center">
+                  <span className="block text-xs font-bold text-emerald-600/70 uppercase tracking-wider">Valid Rows</span>
+                  <span className="text-2xl font-black text-emerald-600">{importSummary.valid}</span>
+                </div>
+                <div className="bg-rose-50/70 border border-rose-100 rounded-[8px] p-4 text-center">
+                  <span className="block text-xs font-bold text-rose-500/70 uppercase tracking-wider">Error Rows</span>
+                  <span className="text-2xl font-black text-rose-600">{importSummary.errors}</span>
+                </div>
+                <div className="bg-amber-50/70 border border-amber-100 rounded-[8px] p-4 text-center flex items-center justify-center">
+                  {importSummary.errors > 0 ? (
+                    <span className="text-xs font-bold text-amber-600 leading-snug">
+                      Bad rows will be skipped automatically during catalog import.
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-emerald-600 leading-snug">
+                      All catalog rows are valid and ready to import.
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Preview List */}
+              <div className="border border-slate-100 rounded-[10px] overflow-hidden bg-white">
+                <div className="bg-slate-50/50 p-3.5 border-b border-slate-100">
+                  <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">Validation Preview</h3>
+                </div>
+
+                <div className="max-h-[350px] overflow-y-auto" data-lenis-prevent>
+                  <TableShell columns={["Row", "Status", "SKU", "Product Name", "Category", "Price", "Stock", "Errors"]}>
+                    {validatedImportRows.map((row) => (
+                      <tr key={row.index} className={cn("hover:bg-slate-50/50", !row.isValid && "bg-rose-50/20")}>
+                        <Cell className="font-semibold text-slate-400">#{row.index}</Cell>
+                        <Cell>
+                          {row.isValid ? (
+                            <span className="flex items-center gap-1 text-emerald-600 text-xs font-black">
+                              <CheckCircle className="size-3.5 shrink-0" /> Valid
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-rose-500 text-xs font-black">
+                              <AlertTriangle className="size-3.5 shrink-0" /> Error
+                            </span>
+                          )}
+                        </Cell>
+                        <Cell className="font-semibold">{row.sku}</Cell>
+                        <Cell className="font-semibold line-clamp-1">{row.name}</Cell>
+                        <Cell>{row.category}</Cell>
+                        <Cell>{formatPrice(row.price)}</Cell>
+                        <Cell>{row.stock}</Cell>
+                        <Cell className="text-rose-500 text-xs max-w-xs">
+                          {row.errors.map((e: string, i: number) => (
+                            <span key={i} className="block">• {e}</span>
+                          ))}
+                        </Cell>
+                      </tr>
+                    ))}
+                  </TableShell>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setImportStep(2)}
+                  className="rounded-[8px]"
+                >
+                  Back to Mapping
+                </Button>
+                {importSummary.valid > 0 ? (
+                  <Button
+                    onClick={confirmImport}
+                    className="rounded-[8px] bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
+                  >
+                    Import Valid Rows ({importSummary.valid})
+                  </Button>
+                ) : (
+                  <Button
+                    disabled
+                    className="rounded-[8px] bg-slate-300 text-slate-500 font-bold"
+                  >
+                    No Valid Rows to Import
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4: SUCCESS REPORT */}
+          {importStep === 4 && (
+            <div className="text-center py-10 space-y-4 max-w-md mx-auto">
+              <div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                <Check className="size-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-slate-900">Import Complete!</h3>
+                <p className="text-sm text-slate-500">
+                  Successfully added <span className="font-bold text-emerald-600">{importSummary.valid}</span> products to your in-memory database.
+                </p>
+              </div>
+              
+              <div className="flex gap-2 justify-center pt-2">
+                <Button
+                  onClick={() => setImportStep(1)}
+                  className="rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c] font-bold"
+                >
+                  Import Another Sheet
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveSubTab("list")}
+                  className="rounded-[8px]"
+                >
+                  View Updated Catalog
+                </Button>
+              </div>
+            </div>
+          )}
+        </Panel>
+      )}
+
+      {/* 4. BULK PRICE/STOCK UPDATE */}
+      {activeSubTab === "update" && (
+        <Panel 
+          title="Bulk Price & Stock Update Utility"
+          description="Update existing product prices and stock quantities by SKU matching."
+        >
+          {/* Step indicators */}
+          <div className="mb-6 grid grid-cols-3 gap-2 text-center text-xs font-bold border-b border-slate-100 pb-3">
+            {[
+              { num: 1, label: "Upload Sheet" },
+              { num: 2, label: "Verify Match Updates" },
+              { num: 3, label: "Success Status" }
+            ].map((step) => (
+              <div 
+                key={step.num} 
+                className={cn(
+                  "pb-1 border-b-2 transition duration-200", 
+                  updateStep === step.num 
+                    ? "border-[#f97316] text-[#f97316]" 
+                    : updateStep > step.num 
+                      ? "border-emerald-500 text-emerald-600" 
+                      : "border-transparent text-slate-400"
+                )}
+              >
+                Step {step.num}: {step.label}
+              </div>
+            ))}
+          </div>
+
+          {/* STEP 1: UPLOAD CSV */}
+          {updateStep === 1 && (
+            <div className="space-y-6 text-center py-10 max-w-lg mx-auto">
+              <div className="mx-auto grid size-20 place-items-center rounded-full bg-slate-50 border border-slate-100 text-slate-400">
+                <UploadCloud className="size-10" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-black text-slate-800">Select Price/Stock CSV Sheet</h3>
+                <p className="text-xs text-slate-500">
+                  Must include SKU column to map changes to active database items.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                <Button
+                  onClick={loadDemoUpdate}
+                  className="rounded-[8px] bg-slate-900 hover:bg-slate-800 text-white font-bold h-11"
+                >
+                  Load Demo Update Data
+                </Button>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleUpdateFileUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    id="update-file-input"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-[8px] h-11 border-dashed border-2 hover:border-[#f97316]/50"
+                  >
+                    Upload Custom CSV
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-100 rounded-[8px] p-4 text-left text-xs text-slate-500 space-y-2 mt-4">
+                <p className="font-bold text-slate-700 flex items-center gap-1">
+                  <Info className="size-3.5 text-[#f97316]" /> Schema Fields
+                </p>
+                <ul className="list-disc pl-4 space-y-1 font-medium">
+                  <li><strong>SKU</strong> (Required for match)</li>
+                  <li><strong>New_Price_NPR</strong> (Optional replacement cost)</li>
+                  <li><strong>New_Stock_Quantity</strong> (Optional replacement stock quantity)</li>
+                  <li><strong>Availability</strong> (In Stock, Out of Stock, or Preorder)</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: VERIFY UPDATES */}
+          {updateStep === 2 && (
+            <div className="space-y-6">
+              {/* Report Panel */}
+              <div className="grid gap-3 sm:grid-cols-4">
+                <div className="bg-slate-50 border border-slate-100 rounded-[8px] p-4 text-center">
+                  <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Total Sheet Rows</span>
+                  <span className="text-2xl font-black text-slate-700">{updateSummary.total}</span>
+                </div>
+                <div className="bg-emerald-50/70 border border-emerald-100 rounded-[8px] p-4 text-center">
+                  <span className="block text-xs font-bold text-emerald-600/70 uppercase tracking-wider">Match Found Rows</span>
+                  <span className="text-2xl font-black text-emerald-600">{updateSummary.updated}</span>
+                </div>
+                <div className="bg-amber-50/70 border border-amber-100 rounded-[8px] p-4 text-center">
+                  <span className="block text-xs font-bold text-amber-600/70 uppercase tracking-wider">SKUs Not Found</span>
+                  <span className="text-2xl font-black text-amber-600">{updateSummary.notFound}</span>
+                </div>
+                <div className="bg-rose-50/70 border border-rose-100 rounded-[8px] p-4 text-center">
+                  <span className="block text-xs font-bold text-rose-500/70 uppercase tracking-wider">Constraint Errors</span>
+                  <span className="text-2xl font-black text-rose-600">{updateSummary.errors}</span>
+                </div>
+              </div>
+
+              {/* Preview table of updates */}
+              <div className="border border-slate-100 rounded-[10px] overflow-hidden bg-white">
+                <div className="bg-slate-50/50 p-3.5 border-b border-slate-100">
+                  <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">Verify Modifications</h3>
+                </div>
+
+                <div className="max-h-[350px] overflow-y-auto" data-lenis-prevent>
+                  <TableShell columns={["Row", "Status", "SKU", "Catalog Name", "Change Summary", "Warnings/Errors"]}>
+                    {validatedUpdateRows.map((upd) => (
+                      <tr key={upd.index} className={cn("hover:bg-slate-50/50", !upd.exists && "bg-amber-50/20", upd.errors.length > 0 && !upd.isValid && "bg-rose-50/20")}>
+                        <Cell className="font-semibold text-slate-400">#{upd.index}</Cell>
+                        <Cell>
+                          {upd.isValid ? (
+                            <span className="flex items-center gap-1 text-emerald-600 text-xs font-black">
+                              <CheckCircle className="size-3.5 shrink-0" /> Ready
+                            </span>
+                          ) : !upd.exists ? (
+                            <span className="flex items-center gap-1 text-amber-600 text-xs font-black">
+                              <AlertTriangle className="size-3.5 shrink-0" /> Not Found
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-rose-500 text-xs font-black">
+                              <X className="size-3.5 shrink-0" /> Error
+                            </span>
+                          )}
+                        </Cell>
+                        <Cell className="font-semibold">{upd.sku}</Cell>
+                        <Cell className="font-semibold">
+                          {upd.exists ? upd.catalogProduct.name : <span className="text-slate-400">—</span>}
+                        </Cell>
+                        <Cell className="text-xs font-semibold text-slate-600">
+                          {upd.exists ? (
+                            <div className="space-y-0.5">
+                              {upd.newPrice !== null && (
+                                <p>Price: <span className="line-through text-slate-400">{formatPrice(upd.catalogProduct.price)}</span> → <span className="font-bold text-[#f97316]">{formatPrice(upd.newPrice)}</span></p>
+                              )}
+                              {upd.newStock !== null && (
+                                <p>Stock: <span className="line-through text-slate-400">{upd.catalogProduct.stock}</span> → <span className="font-bold text-slate-900">{upd.newStock}</span></p>
+                              )}
+                              {upd.availability && upd.availability !== String(upd.catalogProduct.availability) && (
+                                <p>Availability: <span className="font-bold text-[#2b0f52]">{upd.availability}</span></p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400">No action</span>
+                          )}
+                        </Cell>
+                        <Cell className="text-xs text-rose-500 max-w-xs">
+                          {upd.errors.map((e: string, i: number) => (
+                            <span key={i} className="block">• {e}</span>
+                          ))}
+                        </Cell>
+                      </tr>
+                    ))}
+                  </TableShell>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setUpdateStep(1)}
+                  className="rounded-[8px]"
+                >
+                  Upload Again
+                </Button>
+                {updateSummary.updated > 0 ? (
+                  <Button
+                    onClick={confirmBulkUpdate}
+                    className="rounded-[8px] bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
+                  >
+                    Confirm Bulk Updates ({updateSummary.updated})
+                  </Button>
+                ) : (
+                  <Button
+                    disabled
+                    className="rounded-[8px] bg-slate-300 text-slate-500 font-bold"
+                  >
+                    No Valid Matches to Update
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: SUCCESS REPORT */}
+          {updateStep === 3 && (
+            <div className="text-center py-10 space-y-4 max-w-md mx-auto">
+              <div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                <Check className="size-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-slate-900">Database Updated!</h3>
+                <p className="text-sm text-slate-500">
+                  Successfully modified price/stock data for <span className="font-bold text-emerald-600">{updateSummary.updated}</span> catalog products.
+                </p>
+              </div>
+
+              <div className="flex gap-2 justify-center pt-2">
+                <Button
+                  onClick={() => setUpdateStep(1)}
+                  className="rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c] font-bold"
+                >
+                  Upload Another Update Sheet
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveSubTab("list")}
+                  className="rounded-[8px]"
+                >
+                  View Product List
+                </Button>
+              </div>
+            </div>
+          )}
+        </Panel>
+      )}
     </div>
   )
 }

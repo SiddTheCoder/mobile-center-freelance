@@ -164,9 +164,9 @@ export function ProductSectionClient({
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden rounded-[12px] border border-[#ececf1] bg-white shadow-sm"
+          className="overflow-hidden rounded-[16px] border border-slate-100 bg-white shadow-sm"
         >
-          <div className="grid gap-6 p-6 md:grid-cols-[1fr_300px] md:p-8">
+          <div className="grid gap-6 p-6 md:grid-cols-[1fr_240px] md:p-8 items-center">
             <div className="min-w-0">
               <Link
                 href="/"
@@ -186,18 +186,17 @@ export function ProductSectionClient({
               </p>
             </div>
 
-            <div className="rounded-[8px] bg-[#101322] p-5 text-white shadow-inner">
-              <span className="grid size-11 place-items-center rounded-[8px] bg-white/10 text-[#f97316]">
-                <Smartphone className="size-5" />
-              </span>
-              <p className="mt-5 text-sm font-bold text-white/60">Models</p>
-              <p className="text-3xl font-black">{sectionProducts.length}</p>
-              <p className="mt-3 text-sm font-bold text-white/60">
-                Starting from
-              </p>
-              <p className="text-xl font-black text-[#fed7aa]">
-                {Number.isFinite(startingPrice) ? formatPrice(startingPrice) : "-"}
-              </p>
+            <div className="rounded-[12px] bg-[#101322] p-4.5 text-white border border-slate-800 shadow-sm">
+              <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                <span className="text-xs font-bold text-slate-400">Available Models</span>
+                <span className="text-sm font-black text-[#f97316]">{sectionProducts.length}</span>
+              </div>
+              <div className="pt-2.5">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Starting Price</span>
+                <span className="text-lg font-black text-white mt-0.5 block">
+                  {Number.isFinite(startingPrice) ? formatPrice(startingPrice) : "-"}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -345,7 +344,7 @@ export function ProductSectionClient({
             {filteredProducts.length > 0 ? (
               <motion.div
                 layout
-                className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4"
               >
                 <AnimatePresence mode="popLayout">
                   {filteredProducts.map((product) => (

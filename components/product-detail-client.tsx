@@ -38,6 +38,10 @@ type ProductDetailClientProps = {
 }
 
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 })
+  }, [product.id])
+
   const [galleryIndex, setGalleryIndex] = React.useState(0)
   const [selectedColor, setSelectedColor] = React.useState(product.colors[0])
   const [quantity, setQuantity] = React.useState(1)
@@ -46,9 +50,23 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [authMode, setAuthMode] = React.useState<"login" | "signup">("login")
   const [cartItems, setCartItems] = React.useState<CartItem[]>([])
   const [toast, setToast] = React.useState("")
-  const [botOpen, setBotOpen] = React.useState(true)
+  const [botOpen, setBotOpen] = React.useState(false)
   const [detailTab, setDetailTab] = React.useState<"specs" | "description">("specs")
   const toastTimer = React.useRef<number | null>(null)
+
+  React.useEffect(() => {
+    const dismissedAt = localStorage.getItem("wa_popup_dismissed_at")
+    if (dismissedAt) {
+      const elapsed = Date.now() - parseInt(dismissedAt, 10)
+      if (elapsed > 3600000) {
+        setBotOpen(true)
+      } else {
+        setBotOpen(false)
+      }
+    } else {
+      setBotOpen(true)
+    }
+  }, [])
 
   const [zoomStyle, setZoomStyle] = React.useState<React.CSSProperties>({
     transform: "scale(1)",
@@ -415,7 +433,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               View all
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {relatedProducts.map((item) => (
               <ProductCard key={item.id} product={item} onAdd={addToCart} />
             ))}
@@ -517,7 +535,10 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             className="fixed bottom-36 right-5 z-40 w-80 rounded-[12px] bg-gradient-to-r from-orange-500 via-purple-600 to-indigo-700 p-5 text-white shadow-2xl border border-white/10"
           >
             <button
-              onClick={() => setBotOpen(false)}
+              onClick={() => {
+                setBotOpen(false)
+                localStorage.setItem("wa_popup_dismissed_at", Date.now().toString())
+              }}
               className="absolute right-3 top-3 text-white/80 hover:text-white text-lg font-bold"
             >
               &times;

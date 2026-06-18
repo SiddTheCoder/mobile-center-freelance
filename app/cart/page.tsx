@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { CartSheet } from "@/components/cart-sheet"
 import { LoginDialog } from "@/components/login-dialog"
+import { ProductCard } from "@/components/product-card"
 import { SiteFooter } from "@/components/site-footer"
 import { StorefrontHeader } from "@/components/storefront-header"
 import { CART_STORAGE_KEY, PLATFORM_NAME } from "@/lib/platform"
@@ -412,44 +413,7 @@ export default function CartPage() {
             </h2>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {suggested.map((product) => (
-                <motion.div
-                  key={product.id}
-                  whileHover={{ y: -4 }}
-                  className="rounded-[10px] border border-[#ececf1] bg-white overflow-hidden shadow-sm hover:border-[#f97316]/30 hover:shadow-lg transition"
-                >
-                  <Link
-                    href={`/product/${product.id}`}
-                    className="group block"
-                  >
-                    <div className="flex h-36 items-center justify-center bg-[#f5f5f6]">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="h-full w-full object-contain p-4 transition duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                    <div className="p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#f97316]">
-                        {product.brand}
-                      </p>
-                      <p className="mt-0.5 line-clamp-2 text-[13px] font-semibold text-[#101322]">
-                        {product.name}
-                      </p>
-                      <p className="mt-1.5 text-[15px] font-black text-[#101322]">
-                        {formatPrice(product.price)}
-                      </p>
-                    </div>
-                  </Link>
-                  <div className="px-3 pb-3">
-                    <Button
-                      type="button"
-                      onClick={() => addToCart(product)}
-                      className="h-9 w-full rounded-[8px] bg-[#2b0f52] text-white hover:bg-[#f97316] text-xs font-bold"
-                    >
-                      Add to Cart
-                    </Button>
-                  </div>
-                </motion.div>
+                <ProductCard key={product.id} product={product} onAdd={addToCart} />
               ))}
             </div>
           </section>

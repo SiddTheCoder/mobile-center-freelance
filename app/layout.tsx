@@ -1,11 +1,27 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-import { PLATFORM_NAME } from "@/lib/platform";
+import { PLATFORM_LOGO_SRC, PLATFORM_NAME } from "@/lib/platform";
 
 export const metadata: Metadata = {
   title: PLATFORM_NAME,
   description: "An animated ecommerce platform for tech products.",
+  icons: {
+    icon: [
+      {
+        url: PLATFORM_LOGO_SRC,
+        type: "image/png",
+        sizes: "870x565",
+      },
+    ],
+    apple: [
+      {
+        url: PLATFORM_LOGO_SRC,
+        type: "image/png",
+        sizes: "870x565",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

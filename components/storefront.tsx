@@ -88,6 +88,74 @@ const heroSlides = [
   },
 ]
 
+const promoSlides = [
+  {
+    badge: "Flagship Phone",
+    title: "iPhone 17 Pro Max",
+    subtitle: "A19 Pro · 48MP Pro Fusion · Titanium",
+    price: "Rs. 244,999",
+    highlight: "Same day pickup available",
+    image: "https://www.apple.com/v/iphone-17-pro/g/images/meta/iphone-17-pro_overview__eumhhclcpuaa_og.png?202606161406",
+    href: "/product/iphone-17-pro-max",
+    gradient: "from-[#1a1a2e] via-[#16213e] to-[#0f3460]",
+    accentColor: "text-blue-400",
+    badgeBg: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    glowColor: "bg-blue-500/10",
+  },
+  {
+    badge: "Best Seller",
+    title: "Samsung S26 Ultra",
+    subtitle: "Snapdragon 8 Elite · 200MP · Galaxy AI",
+    price: "Rs. 219,999",
+    highlight: "Free Galaxy Buds3 Pro",
+    image: "https://www.samsung.com/samsung/resources/global/galaxy-s26-ultra/common/images/galaxy-s26-ultra-thumbnail-image.jpg",
+    href: "/product/samsung-s26-ultra",
+    gradient: "from-[#0f3426] via-[#1a4731] to-[#061812]",
+    accentColor: "text-emerald-400",
+    badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    glowColor: "bg-emerald-500/10",
+  },
+  {
+    badge: "Creator Pick",
+    title: "MacBook Air M3",
+    subtitle: "M3 Chip · 18hr Battery · Liquid Retina",
+    price: "Rs. 189,999",
+    highlight: "0% EMI available",
+    image: "https://www.apple.com/v/macbook-air/z/images/meta/macbook_air_mx__ez5y0k5yy7au_og.png?202605080834",
+    href: "/product/macbook-air-m3",
+    gradient: "from-[#2d1b69] via-[#1e1145] to-[#0d0a1a]",
+    accentColor: "text-purple-400",
+    badgeBg: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+    glowColor: "bg-purple-500/10",
+  },
+  {
+    badge: "Aerial Pro",
+    title: "DJI Lito X1",
+    subtitle: "48MP CMOS · 4K/100fps · 45-min flight",
+    price: "Rs. 99,499",
+    highlight: "Fly More Combo included",
+    image: "/dji_drone.png",
+    href: "/product/dji-lito-x1",
+    gradient: "from-[#1a1a1a] via-[#2d2d2d] to-[#0a0a0a]",
+    accentColor: "text-amber-400",
+    badgeBg: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    glowColor: "bg-amber-500/10",
+  },
+  {
+    badge: "Studio Audio",
+    title: "Sony WH-1000XM5",
+    subtitle: "30hr Battery · Hi-Res · Adaptive ANC",
+    price: "Rs. 49,999",
+    highlight: "Premium noise cancelling",
+    image: "https://d1ncau8tqf99kp.cloudfront.net/converted/103364_original_local_1200x1050_v3_converted.webp",
+    href: "/product/sony-wh1000xm5",
+    gradient: "from-[#1c1917] via-[#292524] to-[#0c0a09]",
+    accentColor: "text-orange-400",
+    badgeBg: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+    glowColor: "bg-orange-500/10",
+  },
+]
+
 const categoryPills = [
   { name: "Laptop", icon: Laptop },
   { name: "MacBook", icon: Laptop },
@@ -98,16 +166,20 @@ const categoryPills = [
 ]
 
 const shopTiles = [
-  { name: "Laptop", icon: Laptop },
-  { name: "Phone", icon: Smartphone },
-  { name: "Monitor", icon: Monitor },
-  { name: "PC Builds", icon: Cpu },
-  { name: "Headphone", icon: Headphones },
-  { name: "Speaker", icon: Speaker },
-  { name: "Mouse", icon: Mouse },
-  { name: "Keyboard", icon: Keyboard },
-  { name: "Camera", icon: Camera },
-  { name: "Smart TV", icon: Tv },
+  { name: "Laptop", image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_7d413a689e_a024efb545f5da31.png", slug: "laptops" },
+  { name: "Apple", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/800px-Apple_logo_black.svg.png", slug: "apple" },
+  { name: "Smart Phone", image: "https://www.apple.com/v/iphone-17-pro/g/images/meta/iphone-17-pro_overview__eumhhclcpuaa_og.png?202606161406", slug: "smart-phones" },
+  { name: "Tablet", image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&auto=format&fit=crop&q=80", slug: "tech-accessories" },
+  { name: "Monitor", image: "https://p4-ofp.static.pub/ShareResource/optimized/pdp/loq/loq-laptops/len101q0016/lenovo-loq-gen-11-15-ahp-bundle-series-tn.png?width=584&height=584", slug: "monitors" },
+  { name: "PC Components", image: "https://fantechworld.com/cdn/shop/files/7ooEhcRs1634542321.png?v=1658886662", slug: "tech-accessories" },
+  { name: "Projector", image: "https://image.benq.com/is/image/benqco/mh560-front?$ResponsivePreset$", slug: "projectors" },
+  { name: "Earbuds", image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&auto=format&fit=crop&q=80", slug: "audio" },
+  { name: "Headphone", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&auto=format&fit=crop&q=80", slug: "audio" },
+  { name: "Projector Accessories", image: "https://images.unsplash.com/photo-1496181130204-7552cc14b1e0?w=400&auto=format&fit=crop&q=80", slug: "tech-accessories" },
+  { name: "Speaker", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&auto=format&fit=crop&q=80", slug: "tech-accessories" },
+  { name: "Drone", image: "/dji_drone.png", slug: "drones" },
+  { name: "Microphone", image: "/gaming_microphone.png", slug: "microphones" },
+  { name: "Smart Watch", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&auto=format&fit=crop&q=80", slug: "tech-accessories" },
 ]
 
 const blogCards = [
@@ -232,10 +304,7 @@ function ProductShelf({
       {items.map((product) => (
         <div
           key={product.id}
-          className={cn(
-            "shrink-0",
-            compact ? "w-[280px] sm:w-[310px]" : "w-[300px] sm:w-[330px] lg:w-[350px]"
-          )}
+          className="shrink-0 w-[180px] sm:w-[200px] lg:w-[220px]"
         >
           <ProductCard product={product} compact={compact} onAdd={onAdd} />
         </div>
@@ -247,6 +316,7 @@ function ProductShelf({
 export default function Storefront() {
   const shouldReduceMotion = useReducedMotion()
   const [currentHero, setCurrentHero] = React.useState(0)
+  const [currentPromo, setCurrentPromo] = React.useState(0)
   const [activeCategory, setActiveCategory] = React.useState("Laptop")
   const [activePhoneBrand, setActivePhoneBrand] = React.useState("smart-phones")
   const [arrivalTab, setArrivalTab] = React.useState("Laptop")
@@ -261,8 +331,22 @@ export default function Storefront() {
   const [emiDownPayment, setEmiDownPayment] = React.useState("36000")
   const [emiMonths, setEmiMonths] = React.useState(9)
   const [toast, setToast] = React.useState("")
-  const [botOpen, setBotOpen] = React.useState(true)
+  const [botOpen, setBotOpen] = React.useState(false)
   const toastTimer = React.useRef<number | null>(null)
+
+  React.useEffect(() => {
+    const dismissedAt = localStorage.getItem("wa_popup_dismissed_at")
+    if (dismissedAt) {
+      const elapsed = Date.now() - parseInt(dismissedAt, 10)
+      if (elapsed > 3600000) {
+        setBotOpen(true)
+      } else {
+        setBotOpen(false)
+      }
+    } else {
+      setBotOpen(true)
+    }
+  }, [])
 
   React.useEffect(() => {
     const lenis = new Lenis({
@@ -294,7 +378,14 @@ export default function Storefront() {
     const interval = window.setInterval(() => {
       setCurrentHero((slide) => (slide + 1) % heroSlides.length)
     }, 5200)
+    return () => window.clearInterval(interval)
+  }, [shouldReduceMotion])
 
+  React.useEffect(() => {
+    if (shouldReduceMotion) return
+    const interval = window.setInterval(() => {
+      setCurrentPromo((i) => (i + 1) % promoSlides.length)
+    }, 4000)
     return () => window.clearInterval(interval)
   }, [shouldReduceMotion])
 
@@ -526,162 +617,131 @@ export default function Storefront() {
             </div>
           </div>
 
-          {/* Right Column: World Cup Projector Banner */}
-          <div className="relative overflow-hidden rounded-[12px] bg-gradient-to-b from-[#0f3426] to-[#061812] p-6 text-white border border-[#164835] flex flex-col justify-between min-h-[440px]">
-            {/* Visual backdrop patterns */}
-            <div className="absolute right-[-40px] top-[-40px] size-48 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-            <div className="absolute left-[-20px] bottom-[-20px] size-40 rounded-full bg-teal-500/10 blur-2xl pointer-events-none" />
-
-            <div className="space-y-4">
-              <Badge className="rounded-[6px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold uppercase tracking-wider text-[10px]">
-                World Cup Special
-              </Badge>
-              <h2 className="text-3xl font-black leading-tight tracking-tight text-white mt-2">
-                THE 2026 WORLDCUP FEVER IS ON!
-              </h2>
-              <p className="text-slate-300 text-sm leading-relaxed">
-                Get 30 Speed Mins on Projectors & Projector Screens. Elevate your match viewing experience to stadium levels.
-              </p>
-            </div>
-
-            <div className="space-y-4 mt-6">
-              <div className="rounded-[8px] bg-emerald-950/60 border border-emerald-500/20 p-3.5 text-xs">
-                <p className="font-bold text-emerald-400">Offer Includes:</p>
-                <p className="text-slate-300 mt-1">Free delivery & setup assist in Kathmandu valley.</p>
-              </div>
-              <Link
-                href="/section/projectors"
-                className="inline-flex h-11 w-full items-center justify-center rounded-[8px] bg-white text-sm font-extrabold text-[#0f3426] shadow-lg transition hover:bg-slate-100"
+          {/* Right Column: Auto-rotating Tech Showcase */}
+          <div className="relative overflow-hidden rounded-[12px] min-h-[440px] bg-gradient-to-b from-[#0d0d1a] to-[#111118] border border-white/10">
+            {/* Persistent glow backdrop — never animates */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`glow-${currentPromo}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0 pointer-events-none"
               >
-                SHOP NOW
-              </Link>
+                <div className={cn("absolute right-[-40px] top-[-40px] size-48 rounded-full blur-3xl", promoSlides[currentPromo].glowColor)} />
+                <div className={cn("absolute left-[-20px] bottom-[-20px] size-40 rounded-full blur-2xl", promoSlides[currentPromo].glowColor)} />
+                <div className={cn("absolute inset-0 bg-gradient-to-b opacity-60", promoSlides[currentPromo].gradient)} />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Content that crossfades — opacity only, no layout shift */}
+            <div className="relative z-10 flex flex-col justify-between p-6 text-white h-full min-h-[440px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`content-${currentPromo}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.45, ease: "easeInOut" }}
+                  className="flex flex-col justify-between flex-1"
+                >
+                  <div className="space-y-3">
+                    <Badge className={cn("rounded-[6px] border font-bold uppercase tracking-wider text-[10px]", promoSlides[currentPromo].badgeBg)}>
+                      {promoSlides[currentPromo].badge}
+                    </Badge>
+                    <h2 className="text-2xl font-black leading-tight tracking-tight text-white mt-2">
+                      {promoSlides[currentPromo].title}
+                    </h2>
+                    <p className="text-slate-300 text-xs font-semibold leading-relaxed">
+                      {promoSlides[currentPromo].subtitle}
+                    </p>
+                  </div>
+
+                  <div className="mx-auto my-4 flex items-center justify-center w-full max-w-[200px] aspect-square rounded-[12px] bg-white/5 border border-white/10">
+                    <img
+                      src={promoSlides[currentPromo].image}
+                      alt={promoSlides[currentPromo].title}
+                      className="h-full w-full object-contain p-3 drop-shadow-2xl"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl font-black text-white">{promoSlides[currentPromo].price}</span>
+                      <span className={cn("text-[10px] font-bold uppercase tracking-wider", promoSlides[currentPromo].accentColor)}>
+                        {promoSlides[currentPromo].highlight}
+                      </span>
+                    </div>
+                    <Link
+                      href={promoSlides[currentPromo].href}
+                      className="inline-flex h-10 w-full items-center justify-center rounded-[8px] bg-white text-sm font-extrabold text-[#101322] shadow-lg transition hover:bg-slate-100"
+                    >
+                      SHOP NOW
+                    </Link>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Dot indicators — always visible, never animate away */}
+              <div className="flex justify-center gap-1.5 pt-3">
+                {promoSlides.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setCurrentPromo(i)}
+                    className={cn(
+                      "h-1.5 rounded-full transition-all duration-300",
+                      i === currentPromo
+                        ? "w-6 bg-white"
+                        : "w-1.5 bg-white/30 hover:bg-white/60"
+                    )}
+                    aria-label={`Show ${promoSlides[i].title}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </RevealSection>
 
-        {/* Full-width Teal Banner */}
-        <RevealSection className="mt-4 rounded-[12px] bg-gradient-to-r from-teal-500 via-teal-600 to-emerald-600 p-6 text-white border border-teal-600 shadow-lg shadow-teal-500/5">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-teal-100">
-                Exclusive Deals
-              </p>
-              <p className="mt-1 text-2xl font-black">
-                BEST DEALS ON SMARTPHONES & TABLETS
-              </p>
-              <p className="text-teal-50/80 text-sm mt-1">
-                Save up to 25% on top flagship devices and entry level smartphones.
-              </p>
-            </div>
+        {/* Shop By Categories (Now at the top) */}
+        <RevealSection className="py-10">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-2xl font-black tracking-tight text-[#101322] md:text-3xl">
+              Shop By Categories
+            </h2>
             <Link
-              href="/section/deals"
-              className="inline-flex h-11 items-center justify-center rounded-[8px] bg-white px-5 text-sm font-bold text-teal-800 shadow-md transition hover:bg-slate-100"
+              href="/categories"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-[#2b0f52] transition hover:text-[#f97316]"
             >
-              Shop deals
-            </Link>
-          </div>
-        </RevealSection>
-
-        <RevealSection id="latest-phones" className="py-10">
-          <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f97316]">
-                Latest phones
-              </p>
-              <h2 className="text-2xl font-black tracking-tight text-[#101322] md:text-3xl">
-                Phones by Brand
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
-                New arrivals from iPhone, Samsung, Infinix, HONOR, Xiaomi,
-                OnePlus, OPPO, and vivo.
-              </p>
-            </div>
-            <Link
-              href={`/section/${activePhoneFilter.slug}`}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-[8px] bg-[#101322] px-4 text-sm font-bold text-white transition hover:bg-[#f97316]"
-            >
-              See all
+              View All
               <ArrowRight className="size-4" />
             </Link>
           </div>
-
-          <div className="mb-5 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {phoneBrandFilters.map((filter) => (
-              <motion.button
-                key={filter.slug}
-                type="button"
-                whileHover={{ y: -2 }}
-                onClick={() => setActivePhoneBrand(filter.slug)}
-                className={cn(
-                  "h-10 shrink-0 rounded-[8px] border px-4 text-sm font-black transition",
-                  activePhoneBrand === filter.slug
-                    ? "border-[#f97316] bg-[#fff6ed] text-[#f97316]"
-                    : "border-[#e9e9ee] bg-white text-slate-600 hover:border-[#f97316]/50 hover:text-[#101322]"
-                )}
-              >
-                {filter.label}
-              </motion.button>
-            ))}
-          </div>
-
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
-            {phoneRowProducts.map((product) => (
-              <div
-                key={product.id}
-                className="w-[300px] shrink-0 sm:w-[330px] lg:w-[350px]"
-              >
-                <ProductCard product={product} onAdd={addToCart} />
-              </div>
-            ))}
-          </div>
-        </RevealSection>
-
-        <RevealSection className="py-8">
-          <SectionTitle
-            eyebrow="Computing"
-            title="Laptops & Work Machines"
-            action="See all"
-            actionHref="/section/laptops"
-          />
-          <ProductShelf items={laptopShelfProducts} onAdd={addToCart} />
-        </RevealSection>
-
-        <RevealSection className="py-8">
-          <SectionTitle
-            eyebrow="Setups"
-            title="Tech Accessories & Creator Gear"
-            action="See all"
-            actionHref="/section/tech-accessories"
-          />
-          <ProductShelf items={accessoryShelfProducts} onAdd={addToCart} />
-        </RevealSection>
-
-        {/* World Cup Special Offer Section */}
-        <RevealSection className="py-8">
-          <div className="relative overflow-hidden rounded-[12px] bg-gradient-to-r from-[#030b20] via-[#102a5c] to-[#041235] p-6 text-white border border-[#1b3d7a] shadow-xl mb-6">
-            <div className="absolute right-0 top-0 h-full w-[40%] bg-[radial-gradient(circle_at_right,rgba(59,130,246,0.15),transparent)] pointer-events-none" />
-            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-              <div className="flex items-center gap-4">
-                <span className="grid size-12 place-items-center rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400">
-                  🏆
-                </span>
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight uppercase text-white">World Cup Special Offer</h2>
-                  <p className="text-slate-300 text-sm font-semibold mt-0.5">Get a <span className="text-yellow-400 font-black">FREE JERSEY</span> with every purchase</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+            {shopTiles.map((tile) => (
               <Link
-                href="/section/world-cup"
-                className="inline-flex h-10 items-center justify-center rounded-[8px] bg-blue-600 px-4 text-sm font-bold text-white transition hover:bg-blue-700"
+                key={tile.name}
+                href={`/section/${tile.slug}`}
+                className="group flex flex-col items-center justify-between rounded-[16px] border border-slate-100/60 bg-[#f5f5f6] p-4 text-center transition-all duration-300 hover:border-[#f97316]/30 hover:bg-[#fffaf4] hover:shadow-md h-[180px]"
               >
-                View all
+                <div className="flex flex-1 items-center justify-center p-2 w-full max-h-[110px] overflow-hidden">
+                  <img
+                    src={tile.image}
+                    alt={tile.name}
+                    className="max-h-[90px] max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <span className="mt-2 block text-sm font-bold text-slate-800 transition-colors duration-300 group-hover:text-[#f97316]">
+                  {tile.name}
+                </span>
               </Link>
-            </div>
+            ))}
           </div>
-          <ProductShelf items={worldCupProducts} onAdd={addToCart} />
         </RevealSection>
 
-        <RevealSection id="products" className="py-12 border-t border-slate-100">
+        {/* Trending Categories Now (Now second) */}
+        <RevealSection id="products" className="py-10 border-t border-slate-100">
           <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div className="max-w-xl">
               <h2 className="text-3xl font-black tracking-tight text-[#101322] md:text-4xl">
@@ -727,7 +787,133 @@ export default function Storefront() {
           <ProductShelf items={categoryProducts} onAdd={addToCart} />
         </RevealSection>
 
-        <RevealSection className="grid gap-4 py-4 md:grid-cols-[1fr_1fr]">
+        {/* Latest phones */}
+        <RevealSection id="latest-phones" className="py-10 border-t border-slate-100">
+          <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f97316]">
+                Latest phones
+              </p>
+              <h2 className="text-2xl font-black tracking-tight text-[#101322] md:text-3xl">
+                Phones by Brand
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
+                New arrivals from iPhone, Samsung, Infinix, HONOR, Xiaomi,
+                OnePlus, OPPO, and vivo.
+              </p>
+            </div>
+            <Link
+              href={`/section/${activePhoneFilter.slug}`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[8px] bg-[#101322] px-4 text-sm font-bold text-white transition hover:bg-[#f97316]"
+            >
+              See all
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+
+          <div className="mb-5 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {phoneBrandFilters.map((filter) => (
+              <motion.button
+                key={filter.slug}
+                type="button"
+                whileHover={{ y: -2 }}
+                onClick={() => setActivePhoneBrand(filter.slug)}
+                className={cn(
+                  "h-10 shrink-0 rounded-[8px] border px-4 text-sm font-black transition",
+                  activePhoneBrand === filter.slug
+                    ? "border-[#f97316] bg-[#fff6ed] text-[#f97316]"
+                    : "border-[#e9e9ee] bg-white text-slate-600 hover:border-[#f97316]/50 hover:text-[#101322]"
+                )}
+              >
+                {filter.label}
+              </motion.button>
+            ))}
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
+            {phoneRowProducts.map((product) => (
+              <div
+                key={product.id}
+                className="shrink-0 w-[180px] sm:w-[200px] lg:w-[220px]"
+              >
+                <ProductCard product={product} onAdd={addToCart} />
+              </div>
+            ))}
+          </div>
+        </RevealSection>
+
+        {/* Full-width Teal Banner */}
+        <RevealSection className="mt-4 rounded-[12px] bg-gradient-to-r from-teal-500 via-teal-600 to-emerald-600 p-6 text-white border border-teal-600 shadow-lg shadow-teal-500/5">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-teal-100">
+                Exclusive Deals
+              </p>
+              <p className="mt-1 text-2xl font-black">
+                BEST DEALS ON SMARTPHONES & TABLETS
+              </p>
+              <p className="text-teal-50/80 text-sm mt-1">
+                Save up to 25% on top flagship devices and entry level smartphones.
+              </p>
+            </div>
+            <Link
+              href="/section/deals"
+              className="inline-flex h-11 items-center justify-center rounded-[8px] bg-white px-5 text-sm font-bold text-teal-800 shadow-md transition hover:bg-slate-100"
+            >
+              Shop deals
+            </Link>
+          </div>
+        </RevealSection>
+
+        {/* Laptops & Work Machines */}
+        <RevealSection className="py-10 border-t border-slate-100">
+          <SectionTitle
+            eyebrow="Computing"
+            title="Laptops & Work Machines"
+            action="See all"
+            actionHref="/section/laptops"
+          />
+          <ProductShelf items={laptopShelfProducts} onAdd={addToCart} />
+        </RevealSection>
+
+        {/* Tech Accessories & Creator Gear */}
+        <RevealSection className="py-10 border-t border-slate-100">
+          <SectionTitle
+            eyebrow="Setups"
+            title="Tech Accessories & Creator Gear"
+            action="See all"
+            actionHref="/section/tech-accessories"
+          />
+          <ProductShelf items={accessoryShelfProducts} onAdd={addToCart} />
+        </RevealSection>
+
+        {/* World Cup Special Offer Section */}
+        <RevealSection className="py-10 border-t border-slate-100">
+          <div className="relative overflow-hidden rounded-[12px] bg-gradient-to-r from-[#030b20] via-[#102a5c] to-[#041235] p-6 text-white border border-[#1b3d7a] shadow-xl mb-6">
+            <div className="absolute right-0 top-0 h-full w-[40%] bg-[radial-gradient(circle_at_right,rgba(59,130,246,0.15),transparent)] pointer-events-none" />
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div className="flex items-center gap-4">
+                <span className="grid size-12 place-items-center rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400">
+                  🏆
+                </span>
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight uppercase text-white">World Cup Special Offer</h2>
+                  <p className="text-slate-300 text-sm font-semibold mt-0.5">Get a <span className="text-yellow-400 font-black">FREE JERSEY</span> with every purchase</p>
+                </div>
+              </div>
+              <Link
+                href="/section/world-cup"
+                className="inline-flex h-10 items-center justify-center rounded-[8px] bg-blue-600 px-4 text-sm font-bold text-white transition hover:bg-blue-700"
+              >
+                View all
+              </Link>
+            </div>
+          </div>
+          <ProductShelf items={worldCupProducts} onAdd={addToCart} />
+        </RevealSection>
+
+        {/* Promo Banners (Galaxy A57/PC Builds) */}
+        <RevealSection className="grid gap-4 py-10 md:grid-cols-[1fr_1fr] border-t border-slate-100">
           <div className="rounded-[8px] bg-[#f2edf7] p-6">
             <p className="text-sm font-bold text-[#2b0f52]">The all-new</p>
             <h3 className="text-3xl font-black text-[#101322]">Galaxy A57 5G</h3>
@@ -754,27 +940,6 @@ export default function Storefront() {
             >
               Build setup
             </Link>
-          </div>
-        </RevealSection>
-
-        <RevealSection className="py-10">
-          <SectionTitle title="Shop By Categories" action="View all" />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10">
-            {shopTiles.map((tile) => (
-              <motion.button
-                key={tile.name}
-                type="button"
-                whileHover={{ y: -4 }}
-                className="group rounded-[8px] border border-[#eeeeef] bg-white px-3 py-4 text-center transition hover:border-[#f97316]/40 hover:bg-[#fffaf4]"
-              >
-                <span className="mx-auto grid size-12 place-items-center rounded-[8px] bg-[#f5f5f6] text-[#2b0f52] transition group-hover:bg-[#f97316] group-hover:text-white">
-                  <tile.icon className="size-5" />
-                </span>
-                <span className="mt-3 block text-xs font-bold text-slate-700">
-                  {tile.name}
-                </span>
-              </motion.button>
-            ))}
           </div>
         </RevealSection>
 
@@ -1110,7 +1275,10 @@ export default function Storefront() {
             className="fixed bottom-24 right-5 z-40 w-80 rounded-[12px] bg-gradient-to-r from-orange-500 via-purple-600 to-indigo-700 p-5 text-white shadow-2xl border border-white/10"
           >
             <button
-              onClick={() => setBotOpen(false)}
+              onClick={() => {
+                setBotOpen(false)
+                localStorage.setItem("wa_popup_dismissed_at", Date.now().toString())
+              }}
               className="absolute right-3 top-3 text-white/80 hover:text-white text-lg font-bold"
             >
               &times;
