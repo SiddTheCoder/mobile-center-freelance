@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -141,9 +142,11 @@ export function CartSheet({
                 </span>
               </div>
             </div>
-            <Button className="h-12 rounded-[8px] bg-[#101322] text-white hover:bg-[#f97316]">
-              Checkout
-            </Button>
+            <Link href="/checkout" onClick={() => onOpenChange(false)}>
+              <Button className="h-12 w-full rounded-[8px] bg-[#101322] text-white hover:bg-[#f97316]">
+                Checkout
+              </Button>
+            </Link>
             <p className="text-xs text-slate-500">
               By placing an order, you agree to {PLATFORM_NAME} terms and privacy policy.
             </p>

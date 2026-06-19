@@ -2,7 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react"
 
-import { CART_STORAGE_KEY } from "@/lib/platform"
+import {
+  addCartItem,
+  readCartItems,
+  subscribeToCartChanges,
+  updateCartItemQuantity,
+  writeCartItems,
+} from "@/lib/cart-store"
 import { type Product, type CartItem } from "@/lib/products"
 
 type CartContextType = {
@@ -20,48 +26,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
 
-  // Load from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem(CART_STORAGE_KEY)
-    if (saved) {
-      try {
-        setCartItems(JSON.parse(saved))
-      } catch (e) {
-        console.error(e)
-      }
+    const timer = window.setTimeout(() => {
+      setCartItems(readCartItems())
+    }, 0)
+    const unsubscribe = subscribeToCartChanges(setCartItems)
+
+    return () => {
+      window.clearTimeout(timer)
+      unsubscribe()
     }
   }, [])
 
   const addToCart = (product: Product, quantity = 1) => {
     if (product.soldOut) return
-    setCartItems((prevItems) => {
-      const existingIndex = prevItems.findIndex((item) => item.id === product.id)
-      let newItems = [...prevItems]
-      if (existingIndex > -1) {
-        newItems[existingIndex] = {
-          ...newItems[existingIndex],
-          quantity: newItems[existingIndex].quantity + quantity
-        }
-      } else {
-        newItems.push({ ...product, quantity })
-      }
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems))
-      return newItems
-    })
+
+    const newItems = addCartItem(readCartItems(), product, quantity)
+    writeCartItems(newItems)
+    setCartItems(newItems)
     setCartOpen(true)
   }
 
   const updateCart = (productId: string, quantity: number) => {
-    setCartItems((prevItems) => {
-      const newItems = prevItems.map((item) => {
-        if (item.id === productId) {
-          return { ...item, quantity }
-        }
-        return item
-      }).filter((item) => item.quantity > 0)
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems))
-      return newItems
-    })
+    const newItems = updateCartItemQuantity(readCartItems(), productId, quantity)
+    writeCartItems(newItems)
+    setCartItems(newItems)
   }
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)

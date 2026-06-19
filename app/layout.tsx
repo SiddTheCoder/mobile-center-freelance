@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { PLATFORM_LOGO_SRC, PLATFORM_NAME } from "@/lib/platform";
 
 export const metadata: Metadata = {
@@ -30,8 +31,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full bg-background text-foreground">{children}</body>
+    <html lang="en" className="h-full antialiased" data-scroll-behavior="smooth">
+      <body className="min-h-full bg-background text-foreground">
+        <AuthSessionProvider>{children}</AuthSessionProvider>
+      </body>
     </html>
   );
 }

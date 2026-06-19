@@ -8,20 +8,12 @@ import {
   ArrowRight,
   BadgePercent,
   Calculator,
-  Camera,
-  Cpu,
   FileText,
-  Gamepad2,
   Headphones,
   IdCard,
-  Keyboard,
   MessageCircle,
-  Mouse,
   Smartphone,
-  Speaker,
   Timer,
-  Tv,
-  Watch,
   Zap,
 } from "lucide-react"
 
@@ -37,16 +29,23 @@ import {
 import { Input } from "@/components/ui/input"
 import { CartSheet } from "@/components/cart-sheet"
 import { LoginDialog } from "@/components/login-dialog"
+import { PrefetchLink } from "@/components/prefetch-link"
 import { ProductCard } from "@/components/product-card"
 import { SiteFooter } from "@/components/site-footer"
 import { StorefrontHeader } from "@/components/storefront-header"
-import { CART_STORAGE_KEY } from "@/lib/platform"
+import {
+  addCartItem,
+  readCartItems,
+  subscribeToCartChanges,
+  updateCartItemQuantity,
+  writeCartItems,
+} from "@/lib/cart-store"
 import { cn } from "@/lib/utils"
 import {
   formatPrice,
   getProductById,
-  getPhoneProducts,
-  getProductsForSection,
+  getPhoneProductsFrom,
+  getProductsForSectionFrom,
   phoneBrandFilters,
   products,
   type CartItem,
@@ -266,13 +265,13 @@ function SectionTitle({
         </h2>
       </div>
       {action && (
-        <Link
+        <PrefetchLink
           href={actionHref}
           className="hidden items-center gap-1 text-sm font-semibold text-[#2b0f52] transition hover:text-[#f97316] sm:flex"
         >
           {action}
           <ArrowRight className="size-4" />
-        </Link>
+        </PrefetchLink>
       )}
     </div>
   )
@@ -301,8 +300,13 @@ function ProductShelf({
   )
 }
 
-export default function Storefront() {
+type StorefrontProps = {
+  initialProducts?: Product[]
+}
+
+export default function Storefront({ initialProducts = products }: StorefrontProps) {
   const shouldReduceMotion = useReducedMotion()
+  const catalogProducts = initialProducts.length > 0 ? initialProducts : products
   const [currentHero, setCurrentHero] = React.useState(0)
   const [currentPromo, setCurrentPromo] = React.useState(0)
   const [activeCategory, setActiveCategory] = React.useState("Smart Phone")
@@ -323,17 +327,21 @@ export default function Storefront() {
   const toastTimer = React.useRef<number | null>(null)
 
   React.useEffect(() => {
-    const dismissedAt = localStorage.getItem("wa_popup_dismissed_at")
-    if (dismissedAt) {
-      const elapsed = Date.now() - parseInt(dismissedAt, 10)
-      if (elapsed > 3600000) {
-        setBotOpen(true)
+    const timer = window.setTimeout(() => {
+      const dismissedAt = localStorage.getItem("wa_popup_dismissed_at")
+      if (dismissedAt) {
+        const elapsed = Date.now() - parseInt(dismissedAt, 10)
+        if (elapsed > 3600000) {
+          setBotOpen(true)
+        } else {
+          setBotOpen(false)
+        }
       } else {
-        setBotOpen(false)
+        setBotOpen(true)
       }
-    } else {
-      setBotOpen(true)
-    }
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [])
 
   React.useEffect(() => {
@@ -352,13 +360,14 @@ export default function Storefront() {
   // Load cart from localStorage on mount
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
-      try {
-        const saved = localStorage.getItem(CART_STORAGE_KEY)
-        if (saved) setCartItems(JSON.parse(saved))
-      } catch {}
+      setCartItems(readCartItems())
     }, 0)
+    const unsubscribe = subscribeToCartChanges(setCartItems)
 
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      unsubscribe()
+    }
   }, [])
 
   React.useEffect(() => {
@@ -396,48 +405,60 @@ export default function Storefront() {
     phoneBrandFilters.find((filter) => filter.slug === activePhoneBrand) ??
     phoneBrandFilters[0]
   const phoneRowProducts = React.useMemo(
-    () => getPhoneProducts(activePhoneFilter.brand).slice(0, 12),
-    [activePhoneFilter.brand]
+    () => getPhoneProductsFrom(catalogProducts, activePhoneFilter.brand).slice(0, 12),
+    [activePhoneFilter.brand, catalogProducts]
   )
-  const featuredShelfProducts = getProductsForSection("featured-phones").slice(0, 12)
-  const accessoryShelfProducts = getProductsForSection("tech-accessories").slice(0, 12)
-  const worldCupProducts = getProductsForSection("world-cup")
-  const dealProducts = getProductsForSection("deals").slice(0, 12)
+  const featuredShelfProducts = React.useMemo(
+    () => getProductsForSectionFrom(catalogProducts, "featured-phones").slice(0, 12),
+    [catalogProducts]
+  )
+  const accessoryShelfProducts = React.useMemo(
+    () => getProductsForSectionFrom(catalogProducts, "tech-accessories").slice(0, 12),
+    [catalogProducts]
+  )
+  const worldCupProducts = React.useMemo(
+    () => getProductsForSectionFrom(catalogProducts, "world-cup"),
+    [catalogProducts]
+  )
+  const dealProducts = React.useMemo(
+    () => getProductsForSectionFrom(catalogProducts, "deals").slice(0, 12),
+    [catalogProducts]
+  )
 
   const categoryProducts = React.useMemo(
     () => {
-      const matchingProducts = products.filter((product) =>
+      const matchingProducts = catalogProducts.filter((product) =>
         productMatchesCategory(product, activeCategory)
       )
 
       return matchingProducts
         .concat(
-          products.filter(
+          catalogProducts.filter(
             (product) =>
               !matchingProducts.some((match) => match.id === product.id)
           )
         )
         .slice(0, 12)
     },
-    [activeCategory]
+    [activeCategory, catalogProducts]
   )
 
   const arrivalProducts = React.useMemo(
     () => {
-      const matchingProducts = products.filter((product) =>
+      const matchingProducts = catalogProducts.filter((product) =>
         productMatchesCategory(product, arrivalTab)
       )
 
       return matchingProducts
         .concat(
-          products.filter(
+          catalogProducts.filter(
             (product) =>
               !matchingProducts.some((match) => match.id === product.id)
           )
         )
         .slice(0, 12)
     },
-    [arrivalTab]
+    [arrivalTab, catalogProducts]
   )
 
   const showToast = (message: string) => {
@@ -458,36 +479,18 @@ export default function Storefront() {
   const addToCart = (product: Product) => {
     if (product.soldOut) return
 
-    setCartItems((items) => {
-      const existing = items.find((item) => item.id === product.id)
-      let newItems: CartItem[]
-
-      if (existing) {
-        newItems = items.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      } else {
-        newItems = [...items, { ...product, quantity: 1 }]
-      }
-
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems))
-      return newItems
-    })
+    const newItems = addCartItem(readCartItems(), product, 1)
+    writeCartItems(newItems)
+    setCartItems(newItems)
 
     setCartOpen(true)
     showToast(`${product.name.split(" ").slice(0, 3).join(" ")} added to cart`)
   }
 
   const updateCart = (productId: string, quantity: number) => {
-    setCartItems((items) =>
-      quantity <= 0
-        ? items.filter((item) => item.id !== productId)
-        : items.map((item) =>
-            item.id === productId ? { ...item, quantity } : item
-          )
-    )
+    const newItems = updateCartItemQuantity(readCartItems(), productId, quantity)
+    writeCartItems(newItems)
+    setCartItems(newItems)
   }
 
   const activeHero = heroSlides[currentHero]

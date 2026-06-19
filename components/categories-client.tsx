@@ -11,9 +11,11 @@ import {
 } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
+import { LoginDialog } from "@/components/login-dialog"
 import { SiteFooter } from "@/components/site-footer"
 import { StorefrontHeader } from "@/components/storefront-header"
-import { getProductById } from "@/lib/products"
+import { readCartItems, subscribeToCartChanges } from "@/lib/cart-store"
+import { getProductById, type CartItem } from "@/lib/products"
 
 type Subcategory = {
   name: string
@@ -137,13 +139,20 @@ const allCategories: Category[] = [
 export function CategoriesClient() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [expandedIds, setExpandedIds] = React.useState<string[]>([])
-  const [cartItems, setCartItems] = React.useState<any[]>([])
+  const [cartItems, setCartItems] = React.useState<CartItem[]>([])
+  const [loginOpen, setLoginOpen] = React.useState(false)
+  const [authMode, setAuthMode] = React.useState<"login" | "signup">("login")
 
   React.useEffect(() => {
-    try {
-      const saved = localStorage.getItem("cart")
-      if (saved) setCartItems(JSON.parse(saved))
-    } catch {}
+    const timer = window.setTimeout(() => {
+      setCartItems(readCartItems())
+    }, 0)
+    const unsubscribe = subscribeToCartChanges(setCartItems)
+
+    return () => {
+      window.clearTimeout(timer)
+      unsubscribe()
+    }
   }, [])
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
@@ -169,7 +178,7 @@ export function CategoriesClient() {
     <main className="min-h-screen bg-[#fbfbfa] text-[#101322]">
       <StorefrontHeader
         totalItems={totalItems}
-        onLoginOpen={() => {}}
+        onLoginOpen={() => setLoginOpen(true)}
       />
 
       <div className="mx-auto max-w-7xl px-4 py-8">
@@ -286,6 +295,12 @@ export function CategoriesClient() {
       </div>
 
       <SiteFooter />
+      <LoginDialog
+        open={loginOpen}
+        onOpenChange={setLoginOpen}
+        mode={authMode}
+        onModeChange={setAuthMode}
+      />
     </main>
   )
 }

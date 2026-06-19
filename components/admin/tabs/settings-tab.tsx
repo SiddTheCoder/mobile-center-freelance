@@ -42,12 +42,12 @@ export function SettingsTab() {
 
         <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {[
-            ["Name*", "Demo Admin"],
-            ["Store", "Manchester, UK"],
-            ["Company email*", "demo@online.com"],
+            ["Name*", "Lotus Admin"],
+            ["Store", "Lotus Mobile Point"],
+            ["Company email*", "info@lotusmobilepoint.com"],
             ["Role", "Manager"],
             ["Security", "********************"],
-            ["Store code", "INVENTOR-MAIN"],
+            ["Store code", "LOTUS-MAIN"],
           ].map(([label, value]) => (
             <div key={label} className="text-sm">
               <p className="font-bold text-slate-500">{label}</p>

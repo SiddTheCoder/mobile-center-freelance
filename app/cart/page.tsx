@@ -24,9 +24,15 @@ import { LoginDialog } from "@/components/login-dialog"
 import { ProductCard } from "@/components/product-card"
 import { SiteFooter } from "@/components/site-footer"
 import { StorefrontHeader } from "@/components/storefront-header"
-import { CART_STORAGE_KEY, PLATFORM_NAME } from "@/lib/platform"
+import {
+  addCartItem,
+  readCartItems,
+  subscribeToCartChanges,
+  updateCartItemQuantity,
+  writeCartItems,
+} from "@/lib/cart-store"
+import { PLATFORM_NAME } from "@/lib/platform"
 import { formatPrice, products, type CartItem, type Product } from "@/lib/products"
-import { cn } from "@/lib/utils"
 
 const COUPON_CODE = "SAVE5"
 
@@ -40,18 +46,17 @@ export default function CartPage() {
   const [toast, setToast] = React.useState("")
   const toastTimer = React.useRef<number | null>(null)
 
-  // Load cart from localStorage
   React.useEffect(() => {
-    try {
-      const saved = localStorage.getItem(CART_STORAGE_KEY)
-      if (saved) setCartItems(JSON.parse(saved))
-    } catch {}
-  }, [])
+    const timer = window.setTimeout(() => {
+      setCartItems(readCartItems())
+    }, 0)
+    const unsubscribe = subscribeToCartChanges(setCartItems)
 
-  // Sync to localStorage
-  React.useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
-  }, [cartItems])
+    return () => {
+      window.clearTimeout(timer)
+      unsubscribe()
+    }
+  }, [])
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -71,27 +76,21 @@ export default function CartPage() {
 
   const addToCart = (product: Product, amount = 1) => {
     if (product.soldOut) return
-    setCartItems((items) => {
-      const existing = items.find((i) => i.id === product.id)
-      if (existing) {
-        return items.map((i) =>
-          i.id === product.id ? { ...i, quantity: i.quantity + amount } : i
-        )
-      }
-      return [...items, { ...product, quantity: amount }]
-    })
+
+    const nextItems = addCartItem(readCartItems(), product, amount)
+    writeCartItems(nextItems)
+    setCartItems(nextItems)
     showToast(`${product.name.split(" ").slice(0, 3).join(" ")} added`)
   }
 
   const updateQuantity = (productId: string, quantity: number) => {
-    setCartItems((items) =>
-      quantity <= 0
-        ? items.filter((i) => i.id !== productId)
-        : items.map((i) => (i.id === productId ? { ...i, quantity } : i))
-    )
+    const nextItems = updateCartItemQuantity(readCartItems(), productId, quantity)
+    writeCartItems(nextItems)
+    setCartItems(nextItems)
   }
 
   const clearCart = () => {
+    writeCartItems([])
     setCartItems([])
     showToast("Cart cleared")
   }
@@ -175,7 +174,7 @@ export default function CartPage() {
             </div>
             <h2 className="mt-6 text-2xl font-black">Your cart is empty</h2>
             <p className="mt-2 max-w-sm text-sm text-slate-500 leading-relaxed">
-              Looks like you haven't added anything yet. Explore our latest
+              Looks like you haven&apos;t added anything yet. Explore our latest
               phones, earbuds, and accessories.
             </p>
             <Link href="/">
@@ -371,9 +370,11 @@ export default function CartPage() {
                 </div>
 
                 {/* Checkout Button */}
-                <Button className="mt-5 h-12 w-full rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c] font-bold text-base shadow-lg shadow-orange-500/20">
-                  Proceed to Checkout
-                </Button>
+                <Link href="/checkout">
+                  <Button className="mt-5 h-12 w-full rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c] font-bold text-base shadow-lg shadow-orange-500/20">
+                    Proceed to Checkout
+                  </Button>
+                </Link>
                 <p className="mt-3 text-center text-[10px] text-slate-400">
                   By placing an order, you agree to {PLATFORM_NAME} terms and privacy
                   policy.

@@ -81,7 +81,7 @@ export const trackingRows = [
   },
   {
     order: "ORD-1046",
-    courier: "Demo Store Rider",
+    courier: "Lotus Mobile Point Rider",
     tracking: "DSR-99012",
     dispatch: "16 Jun",
     eta: "17 Jun",

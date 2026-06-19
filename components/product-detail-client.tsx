@@ -20,14 +20,22 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CartSheet } from "@/components/cart-sheet"
 import { LoginDialog } from "@/components/login-dialog"
+import { PrefetchLink } from "@/components/prefetch-link"
 import { ProductCard } from "@/components/product-card"
 import { SiteFooter } from "@/components/site-footer"
 import { StorefrontHeader } from "@/components/storefront-header"
+import {
+  addCartItem,
+  readCartItems,
+  subscribeToCartChanges,
+  updateCartItemQuantity,
+  writeCartItems,
+} from "@/lib/cart-store"
 import { PLATFORM_NAME } from "@/lib/platform"
 import {
   discountFor,
   formatPrice,
-  getRelatedProducts,
+  getRelatedProductsFrom,
   type CartItem,
   type Product,
 } from "@/lib/products"
@@ -35,6 +43,7 @@ import { cn } from "@/lib/utils"
 
 type ProductDetailClientProps = {
   product: Product
+  products?: Product[]
 }
 
 function normalizeColorMatch(value: string) {
@@ -89,7 +98,27 @@ function cleanSpecText(spec: string) {
     .replace(/[.,;:]+$/, "")
 }
 
-export function ProductDetailClient({ product }: ProductDetailClientProps) {
+function formatDetailLabel(label: string) {
+  return label
+    .replace(/[_-]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
+function productDetailEntries(product: Product) {
+  const duplicatedLabels = new Set(["Brand", "Category", "Price NPR"])
+
+  return Object.entries(product.details ?? {})
+    .filter(([, value]) => value !== null && value !== undefined && value !== "")
+    .filter(([label]) => !duplicatedLabels.has(formatDetailLabel(label)))
+}
+
+export function ProductDetailClient({
+  product,
+  products = [product],
+}: ProductDetailClientProps) {
   React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0 })
   }, [product.id])
@@ -107,22 +136,42 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const toastTimer = React.useRef<number | null>(null)
 
   React.useEffect(() => {
-    setGalleryIndex(0)
-    setSelectedColor(product.colors[0] ?? "Default")
-    setQuantity(1)
+    const timer = window.setTimeout(() => {
+      setGalleryIndex(0)
+      setSelectedColor(product.colors[0] ?? "Default")
+      setQuantity(1)
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [product.id, product.colors])
 
   React.useEffect(() => {
-    const dismissedAt = localStorage.getItem("wa_popup_dismissed_at")
-    if (dismissedAt) {
-      const elapsed = Date.now() - parseInt(dismissedAt, 10)
-      if (elapsed > 3600000) {
-        setBotOpen(true)
+    const timer = window.setTimeout(() => {
+      const dismissedAt = localStorage.getItem("wa_popup_dismissed_at")
+      if (dismissedAt) {
+        const elapsed = Date.now() - parseInt(dismissedAt, 10)
+        if (elapsed > 3600000) {
+          setBotOpen(true)
+        } else {
+          setBotOpen(false)
+        }
       } else {
-        setBotOpen(false)
+        setBotOpen(true)
       }
-    } else {
-      setBotOpen(true)
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setCartItems(readCartItems())
+    }, 0)
+    const unsubscribe = subscribeToCartChanges(setCartItems)
+
+    return () => {
+      window.clearTimeout(timer)
+      unsubscribe()
     }
   }, [])
 
@@ -152,7 +201,8 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
   const activeImage = product.gallery[galleryIndex] ?? product.image
   const discount = discountFor(product)
-  const relatedProducts = getRelatedProducts(product)
+  const relatedProducts = getRelatedProductsFrom(products, product)
+  const detailEntries = productDetailEntries(product)
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
 
   const selectGalleryImage = (index: number) => {
@@ -178,32 +228,18 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const addToCart = (item: Product, amount = 1) => {
     if (item.soldOut) return
 
-    setCartItems((items) => {
-      const existing = items.find((cartItem) => cartItem.id === item.id)
-
-      if (existing) {
-        return items.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + amount }
-            : cartItem
-        )
-      }
-
-      return [...items, { ...item, quantity: amount }]
-    })
+    const nextItems = addCartItem(readCartItems(), item, amount)
+    writeCartItems(nextItems)
+    setCartItems(nextItems)
 
     setCartOpen(true)
     showToast(`${item.name.split(" ").slice(0, 3).join(" ")} added to cart`)
   }
 
   const updateCart = (productId: string, amount: number) => {
-    setCartItems((items) =>
-      amount <= 0
-        ? items.filter((item) => item.id !== productId)
-        : items.map((item) =>
-            item.id === productId ? { ...item, quantity: amount } : item
-          )
-    )
+    const nextItems = updateCartItemQuantity(readCartItems(), productId, amount)
+    writeCartItems(nextItems)
+    setCartItems(nextItems)
   }
 
   return (
@@ -450,6 +486,16 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                       <span className="text-slate-850">{cleanSpecText(spec)}</span>
                     </div>
                   ))}
+                  {detailEntries.map(([label, value]) => (
+                    <div key={label} className="grid grid-cols-[180px_1fr] gap-4 py-3.5">
+                      <span className="font-bold text-slate-500">
+                        {formatDetailLabel(label)}
+                      </span>
+                      <span className="text-slate-800 font-semibold">
+                        {String(value)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="leading-relaxed text-slate-700 py-2 space-y-4">
@@ -467,7 +513,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             <h2 className="mb-4 font-black">People also buy these</h2>
             <div className="space-y-3">
               {relatedProducts.slice(0, 3).map((item) => (
-                <Link
+                <PrefetchLink
                   key={item.id}
                   href={`/product/${item.id}`}
                   className="flex gap-3 rounded-[8px] p-2 transition hover:bg-[#fff6ed]"
@@ -487,7 +533,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                       {formatPrice(item.price)}
                     </span>
                   </span>
-                </Link>
+                </PrefetchLink>
               ))}
             </div>
           </aside>

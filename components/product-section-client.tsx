@@ -3,15 +3,22 @@
 import * as React from "react"
 import Link from "next/link"
 import { AnimatePresence, motion } from "motion/react"
-import { ArrowLeft, ArrowRight, Smartphone, Search, Filter } from "lucide-react"
+import { ArrowLeft, ArrowRight, Search, Filter } from "lucide-react"
 
 import { CartSheet } from "@/components/cart-sheet"
 import { LoginDialog } from "@/components/login-dialog"
+import { PrefetchLink } from "@/components/prefetch-link"
 import { ProductCard } from "@/components/product-card"
 import { SiteFooter } from "@/components/site-footer"
 import { StorefrontHeader } from "@/components/storefront-header"
 import { Input } from "@/components/ui/input"
-import { CART_STORAGE_KEY } from "@/lib/platform"
+import {
+  addCartItem,
+  readCartItems,
+  subscribeToCartChanges,
+  updateCartItemQuantity,
+  writeCartItems,
+} from "@/lib/cart-store"
 import {
   formatPrice,
   productSections,
@@ -46,22 +53,27 @@ export function ProductSectionClient({
 
   // Reset filters on section change
   React.useEffect(() => {
-    setSelectedBrands([])
-    setBrandSearch("")
-    setMinPrice(0)
-    setMaxPrice(300000)
-    setPriceRanges([])
+    const timer = window.setTimeout(() => {
+      setSelectedBrands([])
+      setBrandSearch("")
+      setMinPrice(0)
+      setMaxPrice(300000)
+      setPriceRanges([])
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [section.slug])
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
-      try {
-        const saved = localStorage.getItem(CART_STORAGE_KEY)
-        if (saved) setCartItems(JSON.parse(saved))
-      } catch {}
+      setCartItems(readCartItems())
     }, 0)
+    const unsubscribe = subscribeToCartChanges(setCartItems)
 
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      unsubscribe()
+    }
   }, [])
 
   const allSectionBrands = React.useMemo(() => {
@@ -113,43 +125,21 @@ export function ProductSectionClient({
     toastTimer.current = window.setTimeout(() => setToast(""), 2600)
   }
 
-  const persistCart = (items: CartItem[]) => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
-  }
-
   const addToCart = (product: Product) => {
     if (product.soldOut) return
 
-    setCartItems((items) => {
-      const existing = items.find((item) => item.id === product.id)
-      const nextItems = existing
-        ? items.map((item) =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          )
-        : [...items, { ...product, quantity: 1 }]
-
-      persistCart(nextItems)
-      return nextItems
-    })
+    const nextItems = addCartItem(readCartItems(), product, 1)
+    writeCartItems(nextItems)
+    setCartItems(nextItems)
 
     setCartOpen(true)
     showToast(`${product.name.split(" ").slice(0, 3).join(" ")} added to cart`)
   }
 
   const updateCart = (productId: string, quantity: number) => {
-    setCartItems((items) => {
-      const nextItems =
-        quantity <= 0
-          ? items.filter((item) => item.id !== productId)
-          : items.map((item) =>
-              item.id === productId ? { ...item, quantity } : item
-            )
-
-      persistCart(nextItems)
-      return nextItems
-    })
+    const nextItems = updateCartItemQuantity(readCartItems(), productId, quantity)
+    writeCartItems(nextItems)
+    setCartItems(nextItems)
   }
 
   return (
@@ -203,7 +193,7 @@ export function ProductSectionClient({
           <div className="border-t border-[#ececf1] px-6 py-4 md:px-8 bg-slate-50/50">
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
               {productSections.map((filter) => (
-                <Link
+                <PrefetchLink
                   key={filter.slug}
                   href={`/section/${filter.slug}`}
                   className={cn(
@@ -215,7 +205,7 @@ export function ProductSectionClient({
                 >
                   {filter.label}
                   {section.slug === filter.slug && <ArrowRight className="size-4" />}
-                </Link>
+                </PrefetchLink>
               ))}
             </div>
           </div>

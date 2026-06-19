@@ -1,5 +1,10 @@
+export type ProductDetailValue = string | number | boolean
+
+export type ProductDetails = Record<string, ProductDetailValue>
+
 export type Product = {
   id: string
+  sku?: string
   name: string
   brand: string
   category: string
@@ -11,6 +16,13 @@ export type Product = {
   gallery: string[]
   badge?: string
   soldOut?: boolean
+  stock?: number
+  availability?: string
+  status?: string
+  featured?: boolean
+  warranty?: string
+  details?: ProductDetails
+  rawFields?: Record<string, string>
   specs: string[]
   colors: string[]
   description: string
@@ -1352,7 +1364,7 @@ export function discountFor(product: Product) {
 }
 
 export function getProductById(id: string) {
-  return products.find((product) => product.id === id)
+  return getProductByIdFrom(products, id)
 }
 
 export const phoneBrandFilters = [
@@ -1478,7 +1490,15 @@ export const productSections: ProductSection[] = [
 ]
 
 export function getPhoneProducts(brand?: string) {
-  return products.filter(
+  return getPhoneProductsFrom(products, brand)
+}
+
+export function getProductByIdFrom(productList: Product[], id: string) {
+  return productList.find((product) => product.id === id)
+}
+
+export function getPhoneProductsFrom(productList: Product[], brand?: string) {
+  return productList.filter(
     (product) =>
       product.category === "Smart Phone" &&
       (!brand || product.brand.toLowerCase() === brand.toLowerCase())
@@ -1490,39 +1510,67 @@ export function getProductSectionBySlug(slug: string) {
 }
 
 export function getProductsForSection(slug: string) {
+  return getProductsForSectionFrom(products, slug)
+}
+
+export function getProductsForSectionFrom(productList: Product[], slug: string) {
   const section = getProductSectionBySlug(slug)
   if (!section) return []
 
   if (section.productIds) {
-    return section.productIds
-      .map((id) => products.find((product) => product.id === id))
+    const selectedProducts = section.productIds
+      .map((id) => productList.find((product) => product.id === id))
       .filter((product): product is Product => Boolean(product))
+
+    const uploadedMatches = productList.filter((product) => {
+      if (selectedProducts.some((item) => item.id === product.id)) return false
+      if (section.slug === "featured-phones") {
+        return product.category === "Smart Phone" && Boolean(product.featured)
+      }
+      if (section.slug === "world-cup") {
+        return Boolean(product.featured) && !product.soldOut
+      }
+      if (section.slug === "deals") {
+        return !product.soldOut
+      }
+      return false
+    })
+
+    return [...uploadedMatches, ...selectedProducts]
   }
 
   if (section.dealOnly) {
-    return products.filter((product) => product.originalPrice && !product.soldOut)
+    return productList.filter((product) => product.originalPrice && !product.soldOut)
   }
 
   if (section.category) {
-    return products.filter((product) => product.category === section.category)
+    return productList.filter((product) => product.category === section.category)
   }
 
   if (section.categories) {
-    return products.filter((product) => section.categories?.includes(product.category))
+    return productList.filter((product) => section.categories?.includes(product.category))
   }
 
-  return getPhoneProducts(section.brand)
+  return getPhoneProductsFrom(productList, section.brand)
 }
 
 export function getRelatedProducts(product: Product, limit = 5) {
-  return products
+  return getRelatedProductsFrom(products, product, limit)
+}
+
+export function getRelatedProductsFrom(
+  productList: Product[],
+  product: Product,
+  limit = 5
+) {
+  return productList
     .filter(
       (candidate) =>
         candidate.id !== product.id &&
         (candidate.category === product.category ||
           candidate.brand === product.brand)
     )
-    .concat(products.filter((candidate) => candidate.id !== product.id))
+    .concat(productList.filter((candidate) => candidate.id !== product.id))
     .filter(
       (candidate, index, list) =>
         list.findIndex((item) => item.id === candidate.id) === index

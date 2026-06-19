@@ -1,0 +1,89 @@
+Other clients archived from clients.ts
+
+11 - Demo Store
+Location: M8HX+QQ2, Kathmandu 44600
+Icon: /demo-store-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=M8HX%2BQQ2%2C%20Kathmandu%2044600
+Google Maps Embed URL: https://maps.google.com/maps?q=M8HX%2BQQ2%2C%20Kathmandu%2044600&z=17&output=embed
+Phone: 97080000000
+Email: demo@online.com
+
+0 - Sun Mobile Store
+Location: Koteshwor, Kathmandu 44600
+Icon: /sun-mobile-store-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=Sun%20Mobile%20Store%2C%20Koteshwor%2C%20Kathmandu%2044600
+Google Maps Embed URL: https://maps.google.com/maps?q=Sun%20Mobile%20Store%2C%20Koteshwor%2C%20Kathmandu%2044600&z=17&output=embed
+Phone: 9851065071
+Email:
+
+1 - Kites Mobile Centre
+Location: Koteshwor Chowk, Kathmandu, Nepal
+Icon: /kites-mobile-centre-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=Kites%20Mobile%20Centre%2C%20Koteshwor%20Chowk%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=Kites%20Mobile%20Centre%2C%20Koteshwor%20Chowk%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 9801314281
+Email:
+
+2 - CT Mobile House
+Location: Near Koteshwor Police Station, Koteshwor-32, Kathmandu, Nepal
+Icon: /ct-mobile-house-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=CT%20Mobile%20House%2C%20Near%20Koteshwor%20Police%20Station%2C%20Koteshwor-32%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=CT%20Mobile%20House%2C%20Near%20Koteshwor%20Police%20Station%2C%20Koteshwor-32%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 9705145574
+Email:
+
+3 - Gadget Deal Koteshwor
+Location: Saraswati Marg, Koteshwor, Kathmandu, Nepal
+Icon: /gadget-deal-koteshwor-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=Gadget%20Deal%20Koteshwor%2C%20Saraswati%20Marg%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=Gadget%20Deal%20Koteshwor%2C%20Saraswati%20Marg%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 9840711317 / 9843703207
+Email:
+
+4 - Quick Mobile Pasal
+Location: Kathmandu Ward 32, Chandra Surya Marg 1, Kathmandu, Nepal
+Icon: /quick-mobile-pasal-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=Quick%20Mobile%20Pasal%2C%20Kathmandu%20Ward%2032%2C%20Chandra%20Surya%20Marg%201%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=Quick%20Mobile%20Pasal%2C%20Kathmandu%20Ward%2032%2C%20Chandra%20Surya%20Marg%201%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 9818362277
+Email:
+
+5 - PhoneX Mobile Shop
+Location: Koteshwor, Kathmandu, Nepal
+Icon: /phonex-mobile-shop-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=PhoneX%20mobile%20shop%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=PhoneX%20mobile%20shop%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 9813537029
+Email: Surajmaka99@gmail.com
+
+6 - P.R Traders
+Location: Koteshwor, Kathmandu, Nepal
+Icon: /pr-traders-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=P.R%20Traders%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=P.R%20Traders%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 9841290054 / 9869629001
+Email:
+
+7 - New Bharat Traders
+Location: Koteshwor, Kathmandu, Nepal
+Icon: /new-bharat-traders-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=New%20Bharat%20Traders%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=New%20Bharat%20Traders%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 9851048195
+Email:
+
+8 - Online Saathi Trading Pvt. Ltd
+Location: Koteshwor, Kathmandu, Nepal
+Icon: /online-saathi-trading-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=Online%20Saathi%20Trading%20Pvt.%20Ltd%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=Online%20Saathi%20Trading%20Pvt.%20Ltd%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 9808293927
+Email:
+
+9 - Active Computer Traders
+Location: Near Police Beat / Burger House, Koteshwor, Kathmandu, Nepal
+Icon: /active-computer-traders-icon-big.png
+Google Maps URL: https://www.google.com/maps/search/?api=1&query=Active%20Computer%20Traders%2C%20Near%20Police%20Beat%20Burger%20House%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal
+Google Maps Embed URL: https://maps.google.com/maps?q=Active%20Computer%20Traders%2C%20Near%20Police%20Beat%20Burger%20House%2C%20Koteshwor%2C%20Kathmandu%2C%20Nepal&z=17&output=embed
+Phone: 01-4602591 / 9841927568 / 9803748381
+Email:

@@ -3,7 +3,10 @@ import { notFound } from "next/navigation"
 
 import { ProductDetailClient } from "@/components/product-detail-client"
 import { PLATFORM_NAME } from "@/lib/platform"
-import { getProductById, products } from "@/lib/products"
+import { getCatalogProductById, getCatalogProducts } from "@/lib/product-service"
+import { products } from "@/lib/products"
+
+export const dynamic = "force-dynamic"
 
 export function generateStaticParams() {
   return products.map((product) => ({ id: product.id }))
@@ -15,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const product = getProductById(id)
+  const product = await getCatalogProductById(id)
 
   if (!product) {
     return {
@@ -35,9 +38,12 @@ export default async function ProductPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const product = getProductById(id)
+  const [product, products] = await Promise.all([
+    getCatalogProductById(id),
+    getCatalogProducts(),
+  ])
 
   if (!product) notFound()
 
-  return <ProductDetailClient product={product} />
+  return <ProductDetailClient product={product} products={products} />
 }

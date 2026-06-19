@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { signOut, useSession } from "next-auth/react"
 import {
   ArrowRight,
   ChevronDown,
@@ -30,6 +32,7 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PrefetchLink } from "@/components/prefetch-link"
 import { SiteLogo } from "@/components/site-logo"
 import {
   Dialog,
@@ -224,6 +227,8 @@ export function StorefrontHeader({
   totalItems,
   onLoginOpen,
 }: StorefrontHeaderProps) {
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const [megaOpen, setMegaOpen] = React.useState(false)
   const [activeCategory, setActiveCategory] = React.useState("Smart Phone")
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -411,6 +416,11 @@ export function StorefrontHeader({
   }
 
   const activeCategoryData = sidebarCategories.find(c => c.name === activeCategory) || sidebarCategories[0]
+  const customer = session?.user
+  const customerName =
+    customer?.name || customer?.email?.split("@")[0] || "Lotus customer"
+  const customerEmail = customer?.email || "Lotus customer"
+  const accountLoading = status === "loading"
   const headerTransition = shouldReduceMotion
     ? { duration: 0 }
     : { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const }
@@ -449,7 +459,7 @@ export function StorefrontHeader({
           onSubmit={(event) => {
             event.preventDefault()
             const firstMatch = searchMatches[0]
-            if (firstMatch) window.location.href = `/product/${firstMatch.id}`
+            if (firstMatch) router.push(`/product/${firstMatch.id}`)
           }}
           className="relative hidden flex-1 md:block"
         >
@@ -482,7 +492,7 @@ export function StorefrontHeader({
                 </div>
                 <div className="max-h-[360px] overflow-auto p-2" data-lenis-prevent>
                   {searchMatches.map((product, index) => (
-                    <Link
+                    <PrefetchLink
                       key={product.id}
                       href={`/product/${product.id}`}
                       className="flex w-full items-center gap-3 rounded-[8px] p-2 text-left transition hover:bg-[#fff6ed]"
@@ -507,7 +517,7 @@ export function StorefrontHeader({
                       <span className="text-xs font-bold text-[#f97316]">
                         0{index + 1}
                       </span>
-                    </Link>
+                    </PrefetchLink>
                   ))}
                 </div>
               </motion.div>
@@ -646,16 +656,51 @@ export function StorefrontHeader({
               )}
             </AnimatePresence>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onLoginOpen}
-            className="h-11 rounded-[8px] px-3 text-[#101322] hover:bg-[#fff6ed]"
-          >
-            <User className="size-5" />
-            <span className="hidden sm:inline">Sign In</span>
-          </Button>
-          <Link
+          {customer ? (
+            <div className="group relative">
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 rounded-[8px] px-3 text-[#101322] hover:bg-[#fff6ed]"
+              >
+                <User className="size-5" />
+                <span className="hidden max-w-28 truncate sm:inline">
+                  {customerName}
+                </span>
+              </Button>
+              <div className="invisible absolute right-0 top-full z-50 mt-2 w-56 rounded-[10px] border border-[#ececf1] bg-white p-2 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100 before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-['']">
+                <div className="px-3 py-2">
+                  <p className="truncate text-sm font-black text-[#101322]">
+                    {customerName}
+                  </p>
+                  <p className="truncate text-xs text-slate-500">
+                    {customerEmail}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="w-full rounded-[8px] px-3 py-2 text-left text-sm font-bold text-rose-500 hover:bg-rose-50"
+                >
+                  Sign out
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onLoginOpen}
+              disabled={accountLoading}
+              className="h-11 rounded-[8px] px-3 text-[#101322] hover:bg-[#fff6ed]"
+            >
+              <User className="size-5" />
+              <span className="hidden sm:inline">
+                {accountLoading ? "Checking" : "Sign In"}
+              </span>
+            </Button>
+          )}
+          <PrefetchLink
             href="/cart"
             className="relative flex h-11 items-center gap-1.5 rounded-[8px] px-3 text-[#101322] hover:bg-[#fff6ed] transition text-sm font-medium"
           >
@@ -666,7 +711,7 @@ export function StorefrontHeader({
                 {totalItems}
               </span>
             )}
-          </Link>
+          </PrefetchLink>
         </div>
       </div>
 
@@ -796,7 +841,7 @@ export function StorefrontHeader({
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             {brand.products.map((product) => (
-                              <Link
+                              <PrefetchLink
                                 key={product.id}
                                 href={`/product/${product.id}`}
                                 onClick={() => setMegaOpen(false)}
@@ -820,7 +865,7 @@ export function StorefrontHeader({
                                     )}
                                   </span>
                                 </span>
-                              </Link>
+                              </PrefetchLink>
                             ))}
                           </div>
                         </div>

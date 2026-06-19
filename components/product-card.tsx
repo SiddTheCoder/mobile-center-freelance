@@ -1,9 +1,10 @@
 "use client"
 
-import Link from "next/link"
+import * as React from "react"
 import { motion } from "motion/react"
-import { Star } from "lucide-react"
+import { Check, ShoppingCart, Star } from "lucide-react"
 
+import { PrefetchLink } from "@/components/prefetch-link"
 import { discountFor, formatPrice, type Product } from "@/lib/products"
 
 type ProductCardProps = {
@@ -14,6 +15,24 @@ type ProductCardProps = {
 
 export function ProductCard({ product, compact = false, onAdd }: ProductCardProps) {
   const discount = discountFor(product)
+  const [justAdded, setJustAdded] = React.useState(false)
+  const addedTimer = React.useRef<number | null>(null)
+
+  React.useEffect(
+    () => () => {
+      if (addedTimer.current) window.clearTimeout(addedTimer.current)
+    },
+    []
+  )
+
+  const handleAdd = () => {
+    if (!onAdd || product.soldOut) return
+
+    onAdd(product)
+    setJustAdded(true)
+    if (addedTimer.current) window.clearTimeout(addedTimer.current)
+    addedTimer.current = window.setTimeout(() => setJustAdded(false), 1200)
+  }
 
   return (
     <motion.div
@@ -21,7 +40,7 @@ export function ProductCard({ product, compact = false, onAdd }: ProductCardProp
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className="h-full flex flex-col"
     >
-      <Link
+      <PrefetchLink
         href={`/product/${product.id}`}
         className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] bg-[#f5f5f6] transition duration-300 hover:bg-[#ececf0]"
       >
@@ -42,7 +61,7 @@ export function ProductCard({ product, compact = false, onAdd }: ProductCardProp
             Sold Out
           </span>
         )}
-      </Link>
+      </PrefetchLink>
 
       <div className="flex flex-col pt-2.5 px-1">
         <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400">
@@ -51,12 +70,12 @@ export function ProductCard({ product, compact = false, onAdd }: ProductCardProp
             {product.reviews === 0 ? "Be first to review" : `${product.rating} (${product.reviews})`}
           </span>
         </div>
-        <Link
+        <PrefetchLink
           href={`/product/${product.id}`}
           className="mt-1 line-clamp-2 min-h-[36px] text-[13px] font-medium leading-snug text-[#101322] hover:text-[#f97316] transition-colors"
         >
           {product.name}
-        </Link>
+        </PrefetchLink>
         <div className="mt-2 flex flex-col gap-0.5">
           <p className="text-sm font-extrabold text-[#101322]">
             {formatPrice(product.price)}
@@ -67,8 +86,27 @@ export function ProductCard({ product, compact = false, onAdd }: ProductCardProp
             </p>
           )}
         </div>
+        {onAdd && (
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={product.soldOut}
+            className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-[8px] bg-[#101322] px-3 text-xs font-black text-white shadow-sm transition hover:bg-[#f97316] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+          >
+            {justAdded ? (
+              <>
+                <Check className="size-3.5" />
+                Added
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="size-3.5" />
+                {compact ? "Add" : "Add to Cart"}
+              </>
+            )}
+          </button>
+        )}
       </div>
     </motion.div>
   )
 }
-

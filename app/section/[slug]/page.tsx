@@ -3,11 +3,14 @@ import { notFound } from "next/navigation"
 
 import { ProductSectionClient } from "@/components/product-section-client"
 import { PLATFORM_NAME } from "@/lib/platform"
+import { getCatalogProducts } from "@/lib/product-service"
 import {
   getProductSectionBySlug,
-  getProductsForSection,
+  getProductsForSectionFrom,
   productSections,
 } from "@/lib/products"
+
+export const dynamic = "force-dynamic"
 
 export function generateStaticParams() {
   return productSections.map((section) => ({ slug: section.slug }))
@@ -43,10 +46,12 @@ export default async function ProductSectionPage({
 
   if (!section) notFound()
 
+  const products = await getCatalogProducts()
+
   return (
     <ProductSectionClient
       section={section}
-      sectionProducts={getProductsForSection(slug)}
+      sectionProducts={getProductsForSectionFrom(products, slug)}
     />
   )
 }

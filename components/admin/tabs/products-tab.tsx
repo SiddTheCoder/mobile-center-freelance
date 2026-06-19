@@ -4,7 +4,6 @@ import * as React from "react"
 import { 
   Package, 
   Search, 
-  Filter, 
   CheckCircle, 
   AlertTriangle, 
   Trash2, 
@@ -46,6 +45,7 @@ type ValidatedImportRow = {
   availability: string
   featured: boolean
   status: string
+  rawFields: Record<string, string>
   errors: string[]
   isValid: boolean
 }
@@ -104,16 +104,103 @@ SAMSUNG-GALAXY-S26-ULTRA,202999,0,Out of Stock,Published
 INVALID-SKU-999,50000,5,In Stock,Published
 CMF-WATCH-PRO-3,13999,0,Out of Stock,Published`
 
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  ""
+).replace(/\/$/, "")
+
+function apiUrl(path: string) {
+  return `${API_BASE_URL}${path}`
+}
+
+function apiErrorMessage(data: unknown, fallback: string) {
+  if (data && typeof data === "object") {
+    if ("error" in data && typeof data.error === "string") return data.error
+    if ("errors" in data && Array.isArray(data.errors)) {
+      return data.errors
+        .map((error) => {
+          if (typeof error === "string") return error
+          if (error && typeof error === "object" && "errors" in error && Array.isArray(error.errors)) {
+            return error.errors.join(", ")
+          }
+          return ""
+        })
+        .filter(Boolean)
+        .join(" ")
+    }
+  }
+
+  return fallback
+}
+
+function normalizeHeader(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "")
+}
+
+function readRawField(rawFields: Record<string, string>, aliases: string[]) {
+  const aliasSet = new Set(aliases.map(normalizeHeader))
+  const match = Object.entries(rawFields).find(([key]) =>
+    aliasSet.has(normalizeHeader(key))
+  )
+
+  return match?.[1] ?? ""
+}
+
+function mergeRowsBySku(currentRows: AdminRow[], incomingRows: AdminRow[]) {
+  const incomingSkuSet = new Set(
+    incomingRows.map((row) => String(row.sku ?? "").toUpperCase())
+  )
+
+  return [
+    ...incomingRows,
+    ...currentRows.filter(
+      (row) => !incomingSkuSet.has(String(row.sku ?? "").toUpperCase())
+    ),
+  ]
+}
+
 export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
-  const { rows, addRow, updateRow, deleteRow } = useAdminCollection("products")
+  const { rows: fallbackRows } = useAdminCollection("products")
+  const [rows, setRows] = React.useState<AdminRow[]>(fallbackRows)
+  const [isLoadingProducts, setIsLoadingProducts] = React.useState(false)
+  const [productError, setProductError] = React.useState("")
+  const [manualSaving, setManualSaving] = React.useState(false)
+  const [importSaving, setImportSaving] = React.useState(false)
+  const [updateSaving, setUpdateSaving] = React.useState(false)
   const [activeSubTab, setActiveSubTab] = React.useState<ProductSubTab>("list")
 
-  React.useEffect(() => {
-    if (createSignal && createSignal > 0) {
-      setManualSuccess(false)
-      setActiveSubTab("manual")
+  const refreshProducts = React.useCallback(async () => {
+    setIsLoadingProducts(true)
+    setProductError("")
+
+    try {
+      const response = await fetch(apiUrl("/api/admin/products"), {
+        cache: "no-store",
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(apiErrorMessage(data, "Unable to load products."))
+      }
+
+      setRows(Array.isArray(data.products) ? data.products : [])
+    } catch (error) {
+      setProductError(
+        error instanceof Error ? error.message : "Unable to load products."
+      )
+    } finally {
+      setIsLoadingProducts(false)
     }
-  }, [createSignal])
+  }, [])
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void refreshProducts()
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [refreshProducts])
 
   // Search & filter
   const [searchTerm, setSearchTerm] = React.useState("")
@@ -134,7 +221,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
   // --- MANUAL ADD STATE ---
   const [manualForm, setManualForm] = React.useState({
     sku: "",
-    category: "Mobile",
+    category: "Smart Phone",
     brand: "",
     name: "",
     price: "",
@@ -162,7 +249,18 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
   const [manualErrors, setManualErrors] = React.useState<Record<string, string>>({})
   const [manualSuccess, setManualSuccess] = React.useState(false)
 
-  const handleManualSubmit = (e: React.FormEvent) => {
+  React.useEffect(() => {
+    if (!createSignal || createSignal <= 0) return
+
+    const timer = window.setTimeout(() => {
+      setManualSuccess(false)
+      setActiveSubTab("manual")
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [createSignal])
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const errors: Record<string, string> = {}
 
@@ -202,39 +300,64 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
     }
 
     setManualErrors({})
-    // Add in-memory row mapped to store format
-    addRow({
-      name: manualForm.name,
-      sku: manualForm.sku.trim().toUpperCase(),
-      category: manualForm.category,
-      brand: manualForm.brand,
-      price: priceNum,
-      sale: manualForm.oldPrice ? Number(manualForm.oldPrice) : priceNum,
-      stock: stockNum,
-      status: manualForm.status,
-      featured: manualForm.featured === "Yes",
-      availability: manualForm.availability,
-      model: manualForm.model,
-      variant: manualForm.variant,
-      ram: manualForm.ram,
-      storage: manualForm.storage,
-      processor: manualForm.processor,
-      color: manualForm.color,
-      condition: manualForm.condition,
-      warranty: manualForm.warranty,
-      shortDesc: manualForm.shortDesc,
-      images: manualForm.images,
-      supplier: manualForm.supplier,
-      supplierCode: manualForm.supplierCode,
-      tags: manualForm.tags,
-      barcode: manualForm.barcode
-    })
+    setManualSaving(true)
+    setProductError("")
+
+    try {
+      const response = await fetch(apiUrl("/api/admin/products"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: manualForm.name,
+          sku: manualForm.sku.trim().toUpperCase(),
+          category: manualForm.category,
+          brand: manualForm.brand,
+          price: priceNum,
+          oldPrice: manualForm.oldPrice ? Number(manualForm.oldPrice) : undefined,
+          stock: stockNum,
+          status: manualForm.status,
+          featured: manualForm.featured === "Yes",
+          availability: manualForm.availability,
+          model: manualForm.model,
+          variant: manualForm.variant,
+          ram: manualForm.ram,
+          storage: manualForm.storage,
+          processor: manualForm.processor,
+          color: manualForm.color,
+          condition: manualForm.condition,
+          warranty: manualForm.warranty,
+          shortDesc: manualForm.shortDesc,
+          images: manualForm.images,
+          supplier: manualForm.supplier,
+          supplierCode: manualForm.supplierCode,
+          tags: manualForm.tags,
+          barcode: manualForm.barcode,
+        }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(apiErrorMessage(data, "Unable to save product."))
+      }
+
+      if (data.product) {
+        setRows((current) => mergeRowsBySku(current, [data.product]))
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to save product."
+      setManualErrors({ form: message })
+      setProductError(message)
+      return
+    } finally {
+      setManualSaving(false)
+    }
 
     setManualSuccess(true)
     // Clear form
     setManualForm({
       sku: "",
-      category: "Mobile",
+      category: "Smart Phone",
       brand: "",
       name: "",
       price: "",
@@ -344,6 +467,12 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
     const importSkuSet = new Set<string>()
 
     csvDataRows.forEach((row, index) => {
+      const rawFields = Object.fromEntries(
+        csvHeaders.map((header, headerIndex) => [
+          header,
+          row[headerIndex]?.trim() ?? "",
+        ])
+      )
       const getValue = (field: string) => {
         const headerName = columnMappings[field]
         const headerIndex = csvHeaders.indexOf(headerName)
@@ -418,6 +547,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
         availability: parsedAvailability,
         featured: parsedFeatured,
         status: parsedStatus,
+        rawFields,
         errors,
         isValid
       })
@@ -434,24 +564,65 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
     setImportStep(3)
   }
 
-  const confirmImport = () => {
-    // Add only valid rows
+  const confirmImport = async () => {
     const validRows = validatedImportRows.filter(r => r.isValid)
-    validRows.forEach(row => {
-      addRow({
-        name: row.name,
-        sku: row.sku.toUpperCase(),
-        category: row.category,
-        brand: row.brand,
-        price: row.price,
-        sale: row.price,
-        stock: row.stock,
-        status: row.status,
-        featured: row.featured,
-        availability: row.availability
+
+    setImportSaving(true)
+    setProductError("")
+
+    try {
+      const response = await fetch(apiUrl("/api/admin/products/bulk"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          products: validRows.map((row) => ({
+            ...row,
+            rawFields: row.rawFields,
+            image: readRawField(row.rawFields, ["Image", "Image URL", "Photo", "Thumbnail"]),
+            images: readRawField(row.rawFields, ["Images", "Image URLs", "Gallery"]),
+            color: readRawField(row.rawFields, ["Color", "Colour"]),
+            colors: readRawField(row.rawFields, ["Colors", "Colours"]),
+            condition: readRawField(row.rawFields, ["Condition"]),
+            warranty: readRawField(row.rawFields, ["Warranty", "Warranty Term"]),
+            model: readRawField(row.rawFields, ["Model", "Model Name"]),
+            variant: readRawField(row.rawFields, ["Variant", "Variant Details"]),
+            ram: readRawField(row.rawFields, ["RAM"]),
+            storage: readRawField(row.rawFields, ["Storage", "Storage Size"]),
+            processor: readRawField(row.rawFields, ["Processor", "Chipset", "CPU"]),
+            shortDesc: readRawField(row.rawFields, ["Short Description", "Description"]),
+          })),
+        }),
       })
-    })
-    setImportStep(4)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(apiErrorMessage(data, "Unable to import products."))
+      }
+
+      const importedRows = Array.isArray(data.products) ? data.products : []
+      if (importedRows.length > 0) {
+        setRows((current) => mergeRowsBySku(current, importedRows))
+      }
+
+      if (Array.isArray(data.errors) && data.errors.length > 0) {
+        setProductError(
+          `${data.errors.length} row(s) were rejected by server validation.`
+        )
+      }
+
+      setImportSummary((current) => ({
+        ...current,
+        valid: Number(data.inserted ?? importedRows.length),
+        errors: current.errors + (Array.isArray(data.errors) ? data.errors.length : 0),
+      }))
+      setImportStep(4)
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to import products."
+      setProductError(message)
+    } finally {
+      setImportSaving(false)
+    }
   }
 
   // --- BULK UPDATE STATE ---
@@ -592,25 +763,80 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
     setUpdateStep(2)
   }
 
-  const confirmBulkUpdate = () => {
-    validatedUpdateRows.forEach(upd => {
-      if (!upd.isValid || !upd.catalogProduct) return
-      
-      // Update catalog row values
-      const updatedFields: AdminRow = {}
-      if (upd.newPrice !== null) updatedFields.price = upd.newPrice
-      if (upd.newStock !== null) {
-        updatedFields.stock = upd.newStock
-        // Auto set status tags for list
-        if (upd.newStock === 0) updatedFields.status = "Sold Out"
-        else if (upd.newStock <= 3) updatedFields.status = "Low Stock"
-        else updatedFields.status = upd.status || "Published"
+  const confirmBulkUpdate = async () => {
+    const updates = validatedUpdateRows.filter(
+      (upd) => upd.isValid && upd.catalogProduct
+    )
+    const updatedRows: AdminRow[] = []
+
+    setUpdateSaving(true)
+    setProductError("")
+
+    try {
+      for (const upd of updates) {
+        if (!upd.catalogProduct) continue
+
+        const payload: Record<string, string | number> = {}
+        if (upd.newPrice !== null) payload.price = upd.newPrice
+        if (upd.newStock !== null) payload.stock = upd.newStock
+        if (upd.availability) payload.availability = upd.availability
+        if (upd.status) payload.status = upd.status
+
+        const response = await fetch(
+          apiUrl(`/api/admin/products/${encodeURIComponent(String(upd.catalogProduct._id))}`),
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        )
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(apiErrorMessage(data, `Unable to update ${upd.sku}.`))
+        }
+
+        if (data.product) updatedRows.push(data.product)
       }
-      if (upd.availability) updatedFields.availability = upd.availability
-      
-      updateRow(String(upd.catalogProduct._id), updatedFields)
-    })
-    setUpdateStep(3)
+
+      if (updatedRows.length > 0) {
+        setRows((current) => mergeRowsBySku(current, updatedRows))
+      }
+
+      setUpdateSummary((current) => ({
+        ...current,
+        updated: updatedRows.length,
+      }))
+      setUpdateStep(3)
+    } catch (error) {
+      setProductError(
+        error instanceof Error ? error.message : "Unable to update products."
+      )
+    } finally {
+      setUpdateSaving(false)
+    }
+  }
+
+  const handleDeleteProduct = async (id: string) => {
+    setProductError("")
+
+    try {
+      const response = await fetch(
+        apiUrl(`/api/admin/products/${encodeURIComponent(id)}`),
+        { method: "DELETE" }
+      )
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(apiErrorMessage(data, "Unable to delete product."))
+      }
+
+      setRows((current) => current.filter((product) => String(product._id) !== id))
+    } catch (error) {
+      setProductError(
+        error instanceof Error ? error.message : "Unable to delete product."
+      )
+    }
   }
 
   // Categories list options
@@ -651,9 +877,21 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
       {/* 1. PRODUCT LIST VIEW */}
       {activeSubTab === "list" && (
         <div className="space-y-4">
+          {productError && (
+            <div className="rounded-[8px] border border-rose-100 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-600">
+              {productError}
+            </div>
+          )}
           {/* Header Controls */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <h1 className="text-xl font-bold text-slate-800 tracking-tight">Products</h1>
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight">
+              Products
+              {isLoadingProducts && (
+                <span className="ml-2 text-xs font-semibold text-slate-400">
+                  Loading...
+                </span>
+              )}
+            </h1>
             
             <div className="flex items-center gap-3">
               {/* Search */}
@@ -753,7 +991,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
                           type="button"
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => deleteRow(String(product._id))}
+                          onClick={() => handleDeleteProduct(String(product._id))}
                           className="size-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
                           aria-label="Delete product"
                         >
@@ -783,7 +1021,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-slate-900">Product Registered Successfully!</h3>
                 <p className="text-sm text-slate-500">
-                  The new item has been added to your catalog and is active in-memory.
+                  The new item has been saved to MongoDB and added to your catalog.
                 </p>
               </div>
               <div className="flex gap-2 justify-center pt-2">
@@ -804,6 +1042,11 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
             </div>
           ) : (
             <form onSubmit={handleManualSubmit} className="space-y-6">
+              {manualErrors.form && (
+                <div className="rounded-[8px] border border-rose-100 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-600">
+                  {manualErrors.form}
+                </div>
+              )}
               <div className="bg-slate-50/80 p-4 rounded-[10px] border border-slate-100">
                 <h3 className="text-xs font-black text-[#ea580c] uppercase tracking-wider mb-4">Required Parameters</h3>
                 
@@ -1061,9 +1304,10 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
                 </Button>
                 <Button
                   type="submit"
+                  disabled={manualSaving}
                   className="rounded-[8px] bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold h-11 px-6 shadow-md shadow-black/5 cursor-pointer"
                 >
-                  Save to Catalog
+                  {manualSaving ? "Saving..." : "Save to Catalog"}
                 </Button>
               </div>
             </form>
@@ -1077,6 +1321,11 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
           title="Bulk Product Import Manager"
           description="Import products in bulk using a structured CSV sheet."
         >
+          {productError && (
+            <div className="mb-4 rounded-[8px] border border-amber-100 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700">
+              {productError}
+            </div>
+          )}
           {/* Step indicators */}
           <div className="mb-6 grid grid-cols-4 gap-2 text-center text-xs font-bold border-b border-slate-100 pb-3">
             {[
@@ -1285,9 +1534,10 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
                 {importSummary.valid > 0 ? (
                   <Button
                     onClick={confirmImport}
+                    disabled={importSaving}
                     className="rounded-[8px] bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
                   >
-                    Import Valid Rows ({importSummary.valid})
+                    {importSaving ? "Importing..." : `Import Valid Rows (${importSummary.valid})`}
                   </Button>
                 ) : (
                   <Button
@@ -1310,7 +1560,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-slate-900">Import Complete!</h3>
                 <p className="text-sm text-slate-500">
-                  Successfully added <span className="font-bold text-emerald-600">{importSummary.valid}</span> products to your in-memory database.
+                  Successfully saved <span className="font-bold text-emerald-600">{importSummary.valid}</span> products to MongoDB.
                 </p>
               </div>
               
@@ -1340,6 +1590,11 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
           title="Bulk Price & Stock Update Utility"
           description="Update existing product prices and stock quantities by SKU matching."
         >
+          {productError && (
+            <div className="mb-4 rounded-[8px] border border-amber-100 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700">
+              {productError}
+            </div>
+          )}
           {/* Step indicators */}
           <div className="mb-6 grid grid-cols-3 gap-2 text-center text-xs font-bold border-b border-slate-100 pb-3">
             {[
@@ -1511,9 +1766,10 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
                 {updateSummary.updated > 0 ? (
                   <Button
                     onClick={confirmBulkUpdate}
+                    disabled={updateSaving}
                     className="rounded-[8px] bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
                   >
-                    Confirm Bulk Updates ({updateSummary.updated})
+                    {updateSaving ? "Updating..." : `Confirm Bulk Updates (${updateSummary.updated})`}
                   </Button>
                 ) : (
                   <Button
