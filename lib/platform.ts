@@ -1,8 +1,17 @@
 import { activeClient } from "@/clients"
 
+const FALLBACK_LOGO_SRC = "/demo-store-icon-big.png"
+
+const availableLogoSources = new Set([
+  "/demo-store-icon-big.png",
+  "/lotus-point-icon-big.png",
+])
+
 export const PLATFORM_NAME = activeClient.shopName
 
-export const PLATFORM_LOGO_SRC = activeClient.icon
+export const PLATFORM_LOGO_SRC = availableLogoSources.has(activeClient.icon)
+  ? activeClient.icon
+  : FALLBACK_LOGO_SRC
 
 export const PLATFORM_LOCATION = activeClient.location
 

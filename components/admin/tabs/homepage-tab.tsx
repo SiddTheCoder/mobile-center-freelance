@@ -6,6 +6,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 
@@ -41,14 +42,14 @@ export function HomepageTab() {
     >
       <TableShell columns={["Section", "Title", "Status", "Sort order", "Managed fields", "Manage"]}>
         {rows.map((section) => (
-          <tr key={String(section._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(section._id)} className="hover:bg-[#fbfbfa]">
             <Cell className="font-black">{section.section}</Cell>
             <Cell>{section.title}</Cell>
             <Cell><StatusBadge status={String(section.status)} /></Cell>
             <Cell>{section.order}</Cell>
             <Cell className="text-slate-500">Toggle, title, subtitle, image, CTA, link, selector</Cell>
             <Cell><RowControls collection="homepage" row={section} fields={homepageFields} /></Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

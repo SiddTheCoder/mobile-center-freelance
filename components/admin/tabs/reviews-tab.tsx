@@ -8,6 +8,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 
@@ -59,19 +60,19 @@ export function ReviewsTab() {
       >
         <TableShell columns={["Product", "Customer", "Rating", "Review", "Status", "Manage"]}>
           {reviewCollection.rows.map((review) => (
-            <tr key={String(review._id)} className="hover:bg-[#fbfbfa]">
+            <TableRow key={String(review._id)} className="hover:bg-[#fbfbfa]">
               <Cell className="font-black">{review.product}</Cell>
               <Cell>{review.customer}</Cell>
               <Cell>
-                <span className="inline-flex items-center gap-1 font-black text-[#f97316]">
-                  <Star className="size-4 fill-[#f97316]" />
+                <span className="inline-flex items-center gap-1 font-black text-[#d99056]">
+                  <Star className="size-4 fill-[#d99056]" />
                   {String(review.rating)}
                 </span>
               </Cell>
               <Cell className="text-slate-500">{review.text}</Cell>
               <Cell><StatusBadge status={String(review.status)} /></Cell>
               <Cell><RowControls collection="reviews" row={review} fields={reviewFields} /></Cell>
-            </tr>
+            </TableRow>
           ))}
         </TableShell>
       </Panel>

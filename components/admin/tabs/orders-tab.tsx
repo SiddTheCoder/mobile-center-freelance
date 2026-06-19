@@ -6,6 +6,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 import { Button } from "@/components/ui/button"
@@ -66,7 +67,7 @@ export function OrdersTable({ compact = false }: { compact?: boolean }) {
             newItem={newOrder}
             createLabel="Add order"
           />
-          <Button className="h-9 rounded-[8px] bg-[#101322] text-white hover:bg-[#f97316]">
+          <Button className="h-9 rounded-[8px] bg-[#101322] text-white hover:bg-[#d99056]">
             Export
           </Button>
         </div>
@@ -74,7 +75,7 @@ export function OrdersTable({ compact = false }: { compact?: boolean }) {
     >
       <TableShell columns={columns}>
         {rows.map((order) => (
-          <tr key={String(order._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(order._id)} className="hover:bg-[#fbfbfa]">
             <Cell>
               <span className="font-black text-[#2b0f52]">{order.id}</span>
             </Cell>
@@ -111,7 +112,7 @@ export function OrdersTable({ compact = false }: { compact?: boolean }) {
             <Cell>
               <RowControls collection="orders" row={order} fields={orderFields} />
             </Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

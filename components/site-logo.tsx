@@ -16,7 +16,7 @@ export function SiteLogo({ className, textClassName }: SiteLogoProps) {
       aria-label={`${PLATFORM_NAME} home`}
       className={cn("flex shrink-0 items-center gap-2", className)}
     >
-      <span className="relative block h-10 w-[62px] overflow-hidden rounded-[6px]">
+      <span className="relative block h-10 w-[62px]">
         <Image
           src={PLATFORM_LOGO_SRC}
           alt=""

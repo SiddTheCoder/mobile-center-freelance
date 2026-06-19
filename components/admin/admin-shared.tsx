@@ -8,6 +8,16 @@ import {
   useAdminCollection,
 } from "@/components/admin/admin-state"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +26,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 export type EditableField = {
@@ -26,24 +46,26 @@ export type EditableField = {
 }
 
 const statusTone: Record<string, string> = {
-  Active: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  Active: "bg-orange-50 text-orange-700 ring-orange-200",
   Approved: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Delivered: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Enabled: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Featured: "bg-violet-50 text-violet-700 ring-violet-200",
+  Delivered: "bg-orange-50 text-orange-700 ring-orange-200",
+  Enabled: "bg-orange-50 text-orange-700 ring-orange-200",
+  Featured: "bg-orange-600 text-white ring-orange-600",
   Paid: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Published: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  VIP: "bg-violet-50 text-violet-700 ring-violet-200",
-  Packed: "bg-blue-50 text-blue-700 ring-blue-200",
-  Shipped: "bg-blue-50 text-blue-700 ring-blue-200",
+  Published: "bg-orange-50 text-orange-700 ring-orange-200",
+  VIP: "bg-orange-50 text-orange-700 ring-orange-200",
+  Packed: "bg-orange-50 text-orange-700 ring-orange-200",
+  Shipped: "bg-orange-50 text-orange-700 ring-orange-200",
   "Out for Delivery": "bg-orange-50 text-orange-700 ring-orange-200",
-  "Ready to ship": "bg-blue-50 text-blue-700 ring-blue-200",
+  "Ready to ship": "bg-orange-50 text-orange-700 ring-orange-200",
   Review: "bg-amber-50 text-amber-700 ring-amber-200",
   Pending: "bg-amber-50 text-amber-700 ring-amber-200",
-  Scheduled: "bg-blue-50 text-blue-700 ring-blue-200",
+  Scheduled: "bg-orange-50 text-orange-700 ring-orange-200",
   Draft: "bg-slate-100 text-slate-600 ring-slate-200",
   Invited: "bg-slate-100 text-slate-600 ring-slate-200",
   "Low Stock": "bg-amber-50 text-amber-700 ring-amber-200",
+  "Low stock": "bg-amber-50 text-amber-700 ring-amber-200",
+  "Low in stock": "bg-amber-50 text-amber-700 ring-amber-200",
   "Out of Stock": "bg-rose-50 text-rose-700 ring-rose-200",
   "Sold Out": "bg-rose-50 text-rose-700 ring-rose-200",
   "COD Pending": "bg-amber-50 text-amber-700 ring-amber-200",
@@ -54,14 +76,15 @@ const statusTone: Record<string, string> = {
 
 export function StatusBadge({ status }: { status: string }) {
   return (
-    <span
+    <Badge
+      variant="outline"
       className={cn(
-        "inline-flex h-6 items-center rounded-full px-2.5 text-xs font-bold ring-1",
+        "h-7 rounded-full border-0 px-3 text-xs font-semibold ring-1",
         statusTone[status] ?? "bg-slate-100 text-slate-600 ring-slate-200"
       )}
     >
       {status}
-    </span>
+    </Badge>
   )
 }
 
@@ -77,18 +100,26 @@ export function Panel({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-[8px] border border-[#e7e8ec] bg-white">
-      <div className="flex flex-col gap-3 border-b border-[#eef0f4] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <Card className="gap-0 rounded-2xl border border-slate-150 bg-white py-0 shadow-sm ring-0">
+      <CardHeader className="flex flex-col gap-2 rounded-t-2xl px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-black text-[#101322]">{title}</h2>
+          <CardTitle className="text-base font-bold text-slate-800">
+            {title}
+          </CardTitle>
           {description && (
-            <p className="mt-1 text-sm text-slate-500">{description}</p>
+            <CardDescription className="mt-1 text-sm text-slate-500">
+              {description}
+            </CardDescription>
           )}
         </div>
-        {action}
-      </div>
-      <div className="p-4">{children}</div>
-    </section>
+        {action && (
+          <CardAction className="static row-auto self-auto justify-self-auto">
+            {action}
+          </CardAction>
+        )}
+      </CardHeader>
+      <CardContent className="px-6 pb-6 pt-0 text-sm">{children}</CardContent>
+    </Card>
   )
 }
 
@@ -103,9 +134,8 @@ function FieldEditor({
 }) {
   if (field.type === "checkbox") {
     return (
-      <label className="flex items-center gap-2 rounded-[8px] border border-[#e4e6eb] px-3 py-2 text-sm font-bold">
-        <input
-          type="checkbox"
+      <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold">
+        <Checkbox
           checked={Boolean(value)}
           onChange={(event) => onChange(event.target.checked)}
         />
@@ -116,26 +146,26 @@ function FieldEditor({
 
   if (field.type === "select") {
     return (
-      <select
+      <Select
         value={String(value ?? "")}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 w-full rounded-[8px] border border-[#e4e6eb] bg-white px-3 text-sm font-semibold outline-none focus:border-[#f97316]"
+        className="h-10 rounded-xl border-slate-250 bg-white text-sm font-semibold"
       >
         {(field.options ?? []).map((option) => (
           <option key={option} value={option}>
             {option}
           </option>
         ))}
-      </select>
+      </Select>
     )
   }
 
   if (field.type === "textarea") {
     return (
-      <textarea
+      <Textarea
         value={String(value ?? "")}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-24 w-full rounded-[8px] border border-[#e4e6eb] bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-[#f97316]"
+        className="min-h-24 rounded-xl border-slate-250 bg-white text-sm font-semibold"
       />
     )
   }
@@ -151,7 +181,7 @@ function FieldEditor({
             : event.target.value
         )
       }
-      className="h-10 rounded-[8px] border-[#e4e6eb] bg-white"
+      className="h-10 rounded-xl border-slate-250 bg-white text-sm"
     />
   )
 }
@@ -178,15 +208,15 @@ function RecordDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto rounded-[12px] border border-[#e7e8ec] bg-white p-0 shadow-2xl"
+        className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-0 shadow-xl"
         data-lenis-prevent
       >
         <div className="p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-[#101322]">
+            <DialogTitle className="text-lg font-bold text-slate-800">
               {title}
             </DialogTitle>
-            <DialogDescription className="text-slate-500">
+            <DialogDescription className="text-sm text-slate-400">
               {description}
             </DialogDescription>
           </DialogHeader>
@@ -198,7 +228,7 @@ function RecordDialog({
                 className={cn(field.type === "textarea" && "sm:col-span-2")}
               >
                 {field.type !== "checkbox" && (
-                  <label className="mb-1.5 block text-xs font-black uppercase tracking-[0.12em] text-slate-400">
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">
                     {field.label}
                   </label>
                 )}
@@ -213,19 +243,19 @@ function RecordDialog({
             ))}
           </div>
 
-          <div className="mt-6 flex justify-end gap-2">
+          <div className="mt-6 flex justify-end gap-2.5">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-10 rounded-[8px]"
+              className="h-10 rounded-xl text-sm px-4"
             >
               Cancel
             </Button>
             <Button
               type="button"
               onClick={onSave}
-              className="h-10 rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c]"
+              className="h-10 rounded-xl bg-orange-600 text-sm text-white hover:bg-orange-700 px-4"
             >
               Save changes
             </Button>
@@ -253,10 +283,10 @@ export function ResourceControls({
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
 
   return (
-    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+    <div className="flex flex-row items-center gap-2.5">
       {upload && (
-        <span className="rounded-full bg-[#f5f2ff] px-3 py-1 text-xs font-bold text-[#2b0f52]">
-          Uploaded: {upload}
+        <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+          {upload}
         </span>
       )}
       <input
@@ -273,7 +303,7 @@ export function ResourceControls({
         type="button"
         variant="outline"
         onClick={() => fileInputRef.current?.click()}
-        className="h-9 rounded-[8px] bg-white"
+        className="h-10 rounded-xl bg-white text-sm border-slate-200 text-slate-650 hover:bg-slate-50 px-4"
       >
         <Upload className="size-4" />
         Upload
@@ -284,7 +314,7 @@ export function ResourceControls({
           setDraft(newItem)
           setOpen(true)
         }}
-        className="h-9 rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c]"
+        className="h-10 rounded-xl bg-orange-600 text-sm text-white hover:bg-orange-700 px-4"
       >
         <Plus className="size-4" />
         {createLabel}
@@ -330,7 +360,7 @@ export function RowControls({
           setDraft(row)
           setOpen(true)
         }}
-        className="rounded-[8px] text-slate-500 hover:text-[#f97316]"
+        className="size-8 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50"
         aria-label="Edit row"
       >
         <Edit3 className="size-4" />
@@ -340,7 +370,7 @@ export function RowControls({
         variant="ghost"
         size="icon-sm"
         onClick={() => deleteRow(id)}
-        className="rounded-[8px] text-slate-500 hover:text-rose-500"
+        className="size-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
         aria-label="Delete row"
       >
         <Trash2 className="size-4" />
@@ -370,23 +400,21 @@ export function TableShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[760px] border-separate border-spacing-0 text-left text-sm">
-        <thead>
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={column}
-                className="border-b border-[#eef0f4] bg-[#fbfbfa] px-3 py-3 text-xs font-black uppercase tracking-[0.12em] text-slate-400"
-              >
-                {column}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>{children}</tbody>
-      </table>
-    </div>
+    <Table className="min-w-[760px] text-left text-sm">
+      <TableHeader>
+        <TableRow className="hover:bg-transparent border-b border-orange-100">
+          {columns.map((column) => (
+            <TableHead
+              key={column}
+              className="h-10 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              {column}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>{children}</TableBody>
+    </Table>
   )
 }
 
@@ -398,13 +426,15 @@ export function Cell({
   className?: string
 }) {
   return (
-    <td
+    <TableCell
       className={cn(
-        "border-b border-[#f1f2f5] px-3 py-3 align-middle",
+        "border-b border-slate-100 px-5 py-3 align-middle text-sm text-slate-650",
         className
       )}
     >
       {children}
-    </td>
+    </TableCell>
   )
 }
+
+export { TableRow }

@@ -6,6 +6,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 
@@ -43,14 +44,14 @@ export function BlogsTab() {
     >
       <TableShell columns={["Title", "Category", "Author", "Status", "Publish date", "Manage"]}>
         {rows.map((blog) => (
-          <tr key={String(blog._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(blog._id)} className="hover:bg-[#fbfbfa]">
             <Cell className="font-black">{blog.title}</Cell>
             <Cell>{blog.category}</Cell>
             <Cell>{blog.author}</Cell>
             <Cell><StatusBadge status={String(blog.status)} /></Cell>
             <Cell>{blog.date}</Cell>
             <Cell><RowControls collection="blogs" row={blog} fields={blogFields} /></Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

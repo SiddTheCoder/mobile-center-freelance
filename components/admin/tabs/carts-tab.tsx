@@ -5,6 +5,7 @@ import {
   Panel,
   ResourceControls,
   RowControls,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 import { formatPrice } from "@/lib/products"
@@ -45,7 +46,7 @@ export function CartsTab() {
     >
       <TableShell columns={["Customer / Guest", "Products", "Cart value", "Last activity", "Checkout", "Recovery", "Manage"]}>
         {rows.map((cart) => (
-          <tr key={String(cart._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(cart._id)} className="hover:bg-[#fbfbfa]">
             <Cell className="font-black">{cart.owner}</Cell>
             <Cell className="text-slate-500">{cart.products}</Cell>
             <Cell className="font-black">{formatPrice(Number(cart.value))}</Cell>
@@ -53,7 +54,7 @@ export function CartsTab() {
             <Cell>{cart.checkout}</Cell>
             <Cell>{cart.recovery}</Cell>
             <Cell><RowControls collection="carts" row={cart} fields={cartFields} /></Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

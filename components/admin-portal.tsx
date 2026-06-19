@@ -4,73 +4,38 @@ import * as React from "react"
 import Link from "next/link"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import {
-  BarChart3,
   Bell,
-  Boxes,
-  Building2,
-  ChevronRight,
-  ClipboardList,
-  CreditCard,
   Home,
-  Image,
-  LayoutDashboard,
-  MessageSquareText,
-  Newspaper,
-  Package,
-  Percent,
+  ShoppingBag,
+  Layers,
+  Store,
+  CreditCard,
+  Wrench,
+  PlusCircle,
   Search,
-  Settings,
-  ShieldCheck,
-  ShoppingCart,
-  Tags,
-  Truck,
-  UserCog,
-  Users,
+  MessageSquareText,
+  LogOut,
+  User,
 } from "lucide-react"
 
-import { BannersTab } from "@/components/admin/tabs/banners-tab"
-import { BlogsTab } from "@/components/admin/tabs/blogs-tab"
-import { BrandsTab } from "@/components/admin/tabs/brands-tab"
-import { CartsTab } from "@/components/admin/tabs/carts-tab"
 import { CategoriesTab } from "@/components/admin/tabs/categories-tab"
-import { CouponsTab } from "@/components/admin/tabs/coupons-tab"
-import { CustomersTab } from "@/components/admin/tabs/customers-tab"
 import { DashboardTab } from "@/components/admin/tabs/dashboard-tab"
-import { HomepageTab } from "@/components/admin/tabs/homepage-tab"
-import { InventoryTab } from "@/components/admin/tabs/inventory-tab"
-import { OrdersTab } from "@/components/admin/tabs/orders-tab"
-import { PaymentsTab } from "@/components/admin/tabs/payments-tab"
 import { ProductsTab } from "@/components/admin/tabs/products-tab"
 import { ReportsTab } from "@/components/admin/tabs/reports-tab"
-import { ReviewsTab } from "@/components/admin/tabs/reviews-tab"
 import { SettingsTab } from "@/components/admin/tabs/settings-tab"
-import { TrackingTab } from "@/components/admin/tabs/tracking-tab"
-import { UsersTab } from "@/components/admin/tabs/users-tab"
+import { BrandsTab } from "@/components/admin/tabs/brands-tab"
 import { AdminMemoryProvider } from "@/components/admin/admin-state"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { SiteLogo } from "@/components/site-logo"
-import { PLATFORM_NAME } from "@/lib/platform"
 import { cn } from "@/lib/utils"
+import { activeClient } from "@/clients"
 
 type AdminTabId =
   | "dashboard"
-  | "orders"
-  | "tracking"
   | "products"
-  | "inventory"
   | "categories"
   | "brands"
-  | "customers"
-  | "carts"
-  | "coupons"
-  | "homepage"
-  | "banners"
-  | "reviews"
-  | "blogs"
   | "payments"
-  | "reports"
-  | "users"
   | "settings"
 
 type AdminTab = {
@@ -80,24 +45,12 @@ type AdminTab = {
 }
 
 const adminTabs: AdminTab[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "orders", label: "Orders", icon: ClipboardList },
-  { id: "tracking", label: "Tracking", icon: Truck },
-  { id: "products", label: "Products", icon: Package },
-  { id: "inventory", label: "Inventory", icon: Boxes },
-  { id: "categories", label: "Categories", icon: Tags },
-  { id: "brands", label: "Brands", icon: Building2 },
-  { id: "customers", label: "Customers", icon: Users },
-  { id: "carts", label: "Carts", icon: ShoppingCart },
-  { id: "coupons", label: "Coupons", icon: Percent },
-  { id: "homepage", label: "Homepage CMS", icon: Home },
-  { id: "banners", label: "Banners", icon: Image },
-  { id: "reviews", label: "Reviews", icon: MessageSquareText },
-  { id: "blogs", label: "Blogs", icon: Newspaper },
-  { id: "payments", label: "Payments", icon: CreditCard },
-  { id: "reports", label: "Reports", icon: BarChart3 },
-  { id: "users", label: "Users", icon: UserCog },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "dashboard", label: "Home", icon: Home },
+  { id: "products", label: "Products", icon: ShoppingBag },
+  { id: "categories", label: "Categories", icon: Layers },
+  { id: "brands", label: "Stores", icon: Store },
+  { id: "payments", label: "Finances", icon: CreditCard },
+  { id: "settings", label: "Settings", icon: Wrench },
 ]
 
 const notificationItems = [
@@ -123,42 +76,18 @@ const notificationItems = [
   },
 ]
 
-function renderPanel(activeTab: AdminTabId) {
+function renderPanel(activeTab: AdminTabId, productCreateSignal: number) {
   switch (activeTab) {
     case "dashboard":
       return <DashboardTab />
-    case "orders":
-      return <OrdersTab />
-    case "tracking":
-      return <TrackingTab />
     case "products":
-      return <ProductsTab />
-    case "inventory":
-      return <InventoryTab />
+      return <ProductsTab createSignal={productCreateSignal} />
     case "categories":
       return <CategoriesTab />
     case "brands":
       return <BrandsTab />
-    case "customers":
-      return <CustomersTab />
-    case "carts":
-      return <CartsTab />
-    case "coupons":
-      return <CouponsTab />
-    case "homepage":
-      return <HomepageTab />
-    case "banners":
-      return <BannersTab />
-    case "reviews":
-      return <ReviewsTab />
-    case "blogs":
-      return <BlogsTab />
     case "payments":
-      return <PaymentsTab />
-    case "reports":
       return <ReportsTab />
-    case "users":
-      return <UsersTab />
     case "settings":
       return <SettingsTab />
   }
@@ -167,169 +96,193 @@ function renderPanel(activeTab: AdminTabId) {
 export function AdminPortal() {
   const [activeTab, setActiveTab] = React.useState<AdminTabId>("dashboard")
   const [alertsOpen, setAlertsOpen] = React.useState(false)
+  const [productCreateSignal, setProductCreateSignal] = React.useState(0)
   const shouldReduceMotion = useReducedMotion()
-  const activeTabData =
-    adminTabs.find((tab) => tab.id === activeTab) ?? adminTabs[0]
   const transition = shouldReduceMotion
     ? { duration: 0 }
-    : { duration: 0.24, ease: [0.22, 1, 0.36, 1] as const }
+    : { duration: 0.2, ease: [0.22, 1, 0.36, 1] as const }
 
   return (
     <AdminMemoryProvider>
-    <main className="min-h-screen bg-[#f5f6f8] text-[#101322]">
-      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
-        <aside className="border-r border-[#e4e6eb] bg-white lg:sticky lg:top-0 lg:h-screen">
-          <div className="flex h-full flex-col">
-            <div className="border-b border-[#eef0f4] p-4">
-              <SiteLogo />
-              <div className="mt-4 rounded-[8px] bg-[#101322] p-3 text-white">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/45">
-                  Admin portal
-                </p>
-                <p className="mt-1 font-black">{PLATFORM_NAME}</p>
+      <main className="h-screen w-screen overflow-hidden flex bg-[#f8fafc] text-slate-800 font-sans text-sm">
+        
+        {/* Sidebar (Lock full height, non-scrollable unless content overflows) */}
+        <aside className="w-56 bg-[#0f172a] text-slate-100 flex flex-col flex-shrink-0 z-20 shadow-lg border-r border-slate-900">
+          <div className="p-5 flex flex-col justify-between h-full">
+            {/* Nav Menu */}
+            <div className="space-y-1.5">
+              {/* Brand Heading inside Sidebar top */}
+              <div className="mb-6 px-2">
+                <span className="block text-sm font-bold text-white tracking-tight truncate">
+                  {activeClient.shopName}
+                </span>
+                <span className="block text-[10px] font-bold text-orange-400 uppercase tracking-widest mt-0.5">
+                  Inventory
+                </span>
               </div>
-            </div>
 
-            <nav className="scrollbar-none flex gap-2 overflow-x-auto p-3 lg:block lg:space-y-1 lg:overflow-y-auto">
               {adminTabs.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex h-10 shrink-0 items-center gap-3 rounded-[8px] px-3 text-sm font-bold transition lg:w-full",
+                    "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold transition-all duration-150 w-full",
                     activeTab === tab.id
-                      ? "bg-[#fff6ed] text-[#f97316]"
-                      : "text-slate-600 hover:bg-[#f6f7f9] hover:text-[#101322]"
+                      ? "bg-orange-600 text-white shadow-md shadow-orange-600/10"
+                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
                   )}
                 >
                   <tab.icon className="size-4" />
                   {tab.label}
                 </button>
               ))}
-            </nav>
+            </div>
 
-            <div className="mt-auto hidden border-t border-[#eef0f4] p-4 lg:block">
+            {/* Bottom Menu */}
+            <div className="space-y-1.5 pt-6 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("products")
+                  setProductCreateSignal((signal) => signal + 1)
+                }}
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-450 hover:bg-slate-800 hover:text-white w-full"
+              >
+                <PlusCircle className="size-4 text-orange-500" />
+                Add product
+              </button>
               <Link
                 href="/"
-                className="flex h-10 items-center justify-center rounded-[8px] border border-[#e4e6eb] text-sm font-bold text-slate-600 transition hover:border-[#f97316]/50 hover:text-[#f97316]"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-450 hover:bg-slate-800 hover:text-white w-full"
               >
-                View storefront
+                <LogOut className="size-4" />
+                Log out
               </Link>
             </div>
           </div>
         </aside>
 
-        <section className="min-w-0">
-          <header className="sticky top-0 z-30 border-b border-[#e4e6eb] bg-white/90 px-4 py-3 backdrop-blur-xl lg:px-6">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-                  Admin
-                  <ChevronRight className="size-3" />
-                  {activeTabData.label}
-                </div>
-                <h1 className="mt-1 text-2xl font-black tracking-tight text-[#101322]">
-                  {activeTabData.label}
-                </h1>
+        {/* Right side container */}
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          
+          {/* Top Header */}
+          <header className="sticky top-0 z-40 h-16 border-b border-slate-150 bg-white px-8 flex items-center justify-between flex-shrink-0">
+            {/* Header Title / Breadcrumb */}
+            <div>
+              <span className="font-bold text-slate-800 text-base">Dashboard Portal</span>
+            </div>
+
+            {/* Center Search Bar */}
+            <div className="relative w-72">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                placeholder="Search inventory..."
+                className="h-10 rounded-full border-slate-200 bg-white pl-9 pr-4 text-sm focus-visible:border-orange-500 focus-visible:ring-orange-500/20"
+              />
+            </div>
+
+            {/* Right side controls */}
+            <div className="flex items-center gap-2">
+              {/* Message bubble */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-9 rounded-full text-slate-650 hover:bg-slate-100 hover:text-orange-600"
+              >
+                <MessageSquareText className="size-4.5" />
+              </Button>
+
+              {/* Bell */}
+              <div className="relative">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setAlertsOpen((open) => !open)}
+                  className="size-9 rounded-full text-slate-650 hover:bg-slate-100 hover:text-orange-600"
+                >
+                  <Bell className="size-4.5" />
+                  <span className="absolute right-0.5 top-0.5 grid size-4 place-items-center rounded-full bg-orange-600 text-[8px] font-bold text-white">
+                    {notificationItems.length}
+                  </span>
+                </Button>
+                {/* Notifications Dropdown */}
+                <AnimatePresence>
+                  {alertsOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={transition}
+                      className="absolute right-0 top-[calc(100%+8px)] z-50 w-80 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 bg-slate-50">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">Notifications</p>
+                          <p className="text-[10px] text-slate-400">Admin alerts for today</p>
+                        </div>
+                        <button type="button" className="text-[10px] font-bold text-orange-655 hover:underline">
+                          Mark all read
+                        </button>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto p-1.5" data-lenis-prevent>
+                        {notificationItems.map((item) => (
+                          <button
+                            key={item.title}
+                            type="button"
+                            className="flex w-full gap-2.5 rounded-xl p-2.5 text-left transition hover:bg-orange-50/50"
+                            onClick={() => setAlertsOpen(false)}
+                          >
+                            <span className="mt-1.5 size-1.5 rounded-full bg-orange-600 flex-shrink-0" />
+                            <span className="min-w-0 flex-1">
+                              <span className="block font-bold text-slate-700 text-xs">{item.title}</span>
+                              <span className="mt-0.5 block text-xs text-slate-500 leading-snug">{item.copy}</span>
+                              <span className="mt-0.5 block text-[10px] text-slate-400">{item.time}</span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="relative w-full sm:w-80">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    placeholder="Search orders, products, customers"
-                    className="h-10 rounded-[8px] border-[#e4e6eb] bg-white pl-9"
-                  />
-                </div>
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setAlertsOpen((open) => !open)}
-                    className="relative h-10 rounded-[8px] bg-white"
-                    aria-expanded={alertsOpen}
-                  >
-                    <Bell className="size-4" />
-                    Alerts
-                    <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-rose-500 text-[11px] font-black text-white">
-                      {notificationItems.length}
-                    </span>
-                  </Button>
-                  <AnimatePresence>
-                    {alertsOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                        transition={transition}
-                        className="absolute right-0 top-[calc(100%+10px)] z-50 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-[12px] border border-[#e4e6eb] bg-white shadow-2xl"
-                      >
-                        <div className="flex items-center justify-between border-b border-[#eef0f4] px-4 py-3">
-                          <div>
-                            <p className="text-lg font-black">Notifications</p>
-                            <p className="text-xs font-semibold text-slate-400">
-                              Admin alerts for today
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            className="text-xs font-black text-[#f97316]"
-                          >
-                            Mark all read
-                          </button>
-                        </div>
-                        <div className="max-h-[420px] overflow-y-auto p-2" data-lenis-prevent>
-                          {notificationItems.map((item) => (
-                            <button
-                              key={item.title}
-                              type="button"
-                              className="flex w-full gap-3 rounded-[8px] p-3 text-left transition hover:bg-[#f6f7f9]"
-                              onClick={() => setAlertsOpen(false)}
-                            >
-                              <span className="mt-1 size-2.5 rounded-full bg-[#f97316]" />
-                              <span className="min-w-0 flex-1">
-                                <span className="block font-black text-[#101322]">
-                                  {item.title}
-                                </span>
-                                <span className="mt-1 block text-sm leading-5 text-slate-500">
-                                  {item.copy}
-                                </span>
-                                <span className="mt-1 block text-xs font-bold text-slate-400">
-                                  {item.time}
-                                </span>
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-                <Button className="h-10 rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c]">
-                  <ShieldCheck className="size-4" />
-                  Admin
-                </Button>
+              {/* Gear settings */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setActiveTab("settings")}
+                className="size-9 rounded-full text-slate-650 hover:bg-slate-100 hover:text-orange-600"
+              >
+                <Wrench className="size-4.5" />
+              </Button>
+
+              {/* Profile User avatar */}
+              <div className="size-9 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-sm select-none shadow-md shadow-orange-600/10">
+                <User className="size-4.5" />
               </div>
             </div>
           </header>
 
-          <div className="p-4 lg:p-6">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -12 }}
-                transition={transition}
-              >
-                {renderPanel(activeTab)}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </section>
-      </div>
-    </main>
+          {/* Content Area (Only this right side part is scrollable) */}
+          <section className="flex-1 overflow-y-auto p-8 bg-[#f8fafc]">
+            <div className="max-w-6xl mx-auto">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
+                  transition={transition}
+                >
+                  {renderPanel(activeTab, productCreateSignal)}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </section>
+        </div>
+      </main>
     </AdminMemoryProvider>
   )
 }

@@ -6,6 +6,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 import { Button } from "@/components/ui/button"
@@ -53,7 +54,7 @@ export function InventoryTab() {
     >
       <TableShell columns={["SKU", "Product", "Current", "Sold", "Returned", "Damaged", "Status", "Manage"]}>
         {rows.map((item) => (
-          <tr key={String(item._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(item._id)} className="hover:bg-[#fbfbfa]">
             <Cell className="font-black text-[#2b0f52]">{item.sku}</Cell>
             <Cell className="font-bold">{item.product}</Cell>
             <Cell>{item.current}</Cell>
@@ -62,7 +63,7 @@ export function InventoryTab() {
             <Cell>{item.damaged}</Cell>
             <Cell><StatusBadge status={String(item.status)} /></Cell>
             <Cell><RowControls collection="inventory" row={item} fields={inventoryFields} /></Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

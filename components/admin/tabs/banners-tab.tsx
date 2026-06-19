@@ -6,6 +6,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 
@@ -45,7 +46,7 @@ export function BannersTab() {
     >
       <TableShell columns={["Title", "Type", "Position", "Start", "End", "Status", "Manage"]}>
         {rows.map((banner) => (
-          <tr key={String(banner._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(banner._id)} className="hover:bg-[#fbfbfa]">
             <Cell className="font-black">{banner.title}</Cell>
             <Cell>{banner.type}</Cell>
             <Cell>{banner.position}</Cell>
@@ -53,7 +54,7 @@ export function BannersTab() {
             <Cell>{banner.end}</Cell>
             <Cell><StatusBadge status={String(banner.status)} /></Cell>
             <Cell><RowControls collection="banners" row={banner} fields={bannerFields} /></Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

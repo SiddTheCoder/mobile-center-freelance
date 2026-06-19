@@ -6,6 +6,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 import { formatPrice } from "@/lib/products"
@@ -46,7 +47,7 @@ export function CouponsTab() {
     >
       <TableShell columns={["Code", "Type", "Value", "Minimum order", "Usage", "Status", "Manage"]}>
         {rows.map((coupon) => (
-          <tr key={String(coupon._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(coupon._id)} className="hover:bg-[#fbfbfa]">
             <Cell className="font-black text-[#2b0f52]">{coupon.code}</Cell>
             <Cell>{coupon.type}</Cell>
             <Cell className="font-black">{coupon.value}</Cell>
@@ -54,7 +55,7 @@ export function CouponsTab() {
             <Cell>{coupon.usage}</Cell>
             <Cell><StatusBadge status={String(coupon.status)} /></Cell>
             <Cell><RowControls collection="coupons" row={coupon} fields={couponFields} /></Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

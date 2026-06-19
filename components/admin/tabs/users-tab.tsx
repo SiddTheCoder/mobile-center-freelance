@@ -6,6 +6,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 
@@ -41,13 +42,13 @@ export function UsersTab() {
     >
       <TableShell columns={["Name", "Role", "Permissions", "Status", "Manage"]}>
         {rows.map((user) => (
-          <tr key={String(user._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(user._id)} className="hover:bg-[#fbfbfa]">
             <Cell className="font-black">{user.name}</Cell>
             <Cell>{user.role}</Cell>
             <Cell className="text-slate-500">{user.permission}</Cell>
             <Cell><StatusBadge status={String(user.status)} /></Cell>
             <Cell><RowControls collection="users" row={user} fields={userFields} /></Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

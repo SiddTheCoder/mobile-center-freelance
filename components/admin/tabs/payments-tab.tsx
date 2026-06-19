@@ -6,6 +6,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 import { formatPrice } from "@/lib/products"
@@ -46,7 +47,7 @@ export function PaymentsTab() {
     >
       <TableShell columns={["Order", "Customer", "Method", "Status", "Amount", "Transaction", "Manage"]}>
         {rows.map((payment) => (
-          <tr key={String(payment._id)} className="hover:bg-[#fbfbfa]">
+          <TableRow key={String(payment._id)} className="hover:bg-[#fbfbfa]">
             <Cell className="font-black text-[#2b0f52]">{payment.order}</Cell>
             <Cell>{payment.customer}</Cell>
             <Cell>{payment.method}</Cell>
@@ -54,7 +55,7 @@ export function PaymentsTab() {
             <Cell className="font-black">{formatPrice(Number(payment.amount))}</Cell>
             <Cell className="text-slate-500">{payment.transaction}</Cell>
             <Cell><RowControls collection="payments" row={payment} fields={paymentFields} /></Cell>
-          </tr>
+          </TableRow>
         ))}
       </TableShell>
     </Panel>

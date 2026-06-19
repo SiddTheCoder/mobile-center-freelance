@@ -7,6 +7,7 @@ import {
   ResourceControls,
   RowControls,
   StatusBadge,
+  TableRow,
   TableShell,
 } from "@/components/admin/admin-shared"
 
@@ -49,7 +50,7 @@ export function TrackingTab() {
       >
         <TableShell columns={["Order", "Courier", "Tracking", "Dispatch", "ETA", "Status", "Notes", "Manage"]}>
           {rows.map((row) => (
-            <tr key={String(row._id)} className="hover:bg-[#fbfbfa]">
+            <TableRow key={String(row._id)} className="hover:bg-[#fbfbfa]">
               <Cell className="font-black text-[#2b0f52]">{row.order}</Cell>
               <Cell>{row.courier}</Cell>
               <Cell className="font-semibold text-slate-500">{row.tracking}</Cell>
@@ -58,7 +59,7 @@ export function TrackingTab() {
               <Cell><StatusBadge status={String(row.status)} /></Cell>
               <Cell className="text-slate-500">{row.note}</Cell>
               <Cell><RowControls collection="tracking" row={row} fields={trackingFields} /></Cell>
-            </tr>
+            </TableRow>
           ))}
         </TableShell>
       </Panel>

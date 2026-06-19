@@ -8,31 +8,60 @@ import {
   CheckCircle, 
   AlertTriangle, 
   Trash2, 
-  Edit3, 
   PlusCircle, 
   UploadCloud, 
+  RefreshCw,
   Check, 
   X, 
-  ArrowRight,
   Info,
-  RefreshCw
 } from "lucide-react"
 
-import { useAdminCollection } from "@/components/admin/admin-state"
+import { type AdminRow, useAdminCollection } from "@/components/admin/admin-state"
 import {
   Cell,
   Panel,
+  TableRow,
   TableShell,
-  StatusBadge,
-  RowControls
+  StatusBadge
 } from "@/components/admin/admin-shared"
 import { formatPrice } from "@/lib/products"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Select } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 // Available system categories
-const VALID_CATEGORIES = ["Mobile", "Laptop", "Tablet", "Smartwatch", "Accessory"]
+const VALID_CATEGORIES = ["Mobile", "Laptop", "Tablet", "Smartwatch", "Accessory", "T-Shirt", "T-shirts", "Tops", "Outwear", "Bottoms", "Dresses", "Accessories"]
+
+type ProductSubTab = "list" | "manual" | "import" | "update"
+
+type ValidatedImportRow = {
+  index: number
+  sku: string
+  category: string
+  brand: string
+  name: string
+  price: number
+  stock: number
+  availability: string
+  featured: boolean
+  status: string
+  errors: string[]
+  isValid: boolean
+}
+
+type ValidatedUpdateRow = {
+  index: number
+  sku: string
+  catalogProduct?: AdminRow
+  exists: boolean
+  newPrice: number | null
+  newStock: number | null
+  availability: string
+  status: string
+  errors: string[]
+  isValid: boolean
+}
 
 // Helper function to parse CSV text
 function parseCSV(text: string): string[][] {
@@ -75,9 +104,16 @@ SAM-S24U-512,179999,0,Out of Stock,Published
 INVALID-SKU-999,50000,5,In Stock,Published
 WAN-T2MAX,21000,0,Out of Stock,Published`
 
-export function ProductsTab() {
+export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
   const { rows, addRow, updateRow, deleteRow } = useAdminCollection("products")
-  const [activeSubTab, setActiveSubTab] = React.useState<"list" | "manual" | "import" | "update">("list")
+  const [activeSubTab, setActiveSubTab] = React.useState<ProductSubTab>("list")
+
+  React.useEffect(() => {
+    if (createSignal && createSignal > 0) {
+      setManualSuccess(false)
+      setActiveSubTab("manual")
+    }
+  }, [createSignal])
 
   // Search & filter
   const [searchTerm, setSearchTerm] = React.useState("")
@@ -226,7 +262,6 @@ export function ProductsTab() {
 
   // --- BULK IMPORT STATE ---
   const [importStep, setImportStep] = React.useState<1 | 2 | 3 | 4>(1)
-  const [csvContent, setCsvContent] = React.useState("")
   const [csvHeaders, setCsvHeaders] = React.useState<string[]>([])
   const [csvDataRows, setCsvDataRows] = React.useState<string[][]>([])
   
@@ -244,7 +279,7 @@ export function ProductsTab() {
   })
 
   // Parsed and validated rows
-  const [validatedImportRows, setValidatedImportRows] = React.useState<any[]>([])
+  const [validatedImportRows, setValidatedImportRows] = React.useState<ValidatedImportRow[]>([])
   const [importSummary, setImportSummary] = React.useState({
     total: 0,
     valid: 0,
@@ -257,7 +292,6 @@ export function ProductsTab() {
   }
 
   const handleRawCsvLoad = (csvText: string) => {
-    setCsvContent(csvText)
     const parsed = parseCSV(csvText)
     if (parsed.length < 2) return
 
@@ -301,8 +335,8 @@ export function ProductsTab() {
   }
 
   const startValidation = () => {
-    const parsedRows: any[] = []
-    let total = csvDataRows.length
+    const parsedRows: ValidatedImportRow[] = []
+    const total = csvDataRows.length
     let validCount = 0
     let errorCount = 0
 
@@ -361,7 +395,7 @@ export function ProductsTab() {
         errors.push("Stock must be an integer >= 0.")
       }
 
-      let parsedAvailability = rawAvailability || "In Stock"
+      const parsedAvailability = rawAvailability || "In Stock"
       if (parsedAvailability && !["In Stock", "Out of Stock", "Preorder"].includes(parsedAvailability)) {
         errors.push("Availability must be In Stock, Out of Stock, or Preorder.")
       }
@@ -422,8 +456,7 @@ export function ProductsTab() {
 
   // --- BULK UPDATE STATE ---
   const [updateStep, setUpdateStep] = React.useState<1 | 2 | 3>(1)
-  const [updateCsvContent, setUpdateCsvContent] = React.useState("")
-  const [validatedUpdateRows, setValidatedUpdateRows] = React.useState<any[]>([])
+  const [validatedUpdateRows, setValidatedUpdateRows] = React.useState<ValidatedUpdateRow[]>([])
   const [updateSummary, setUpdateSummary] = React.useState({
     total: 0,
     updated: 0,
@@ -448,7 +481,6 @@ export function ProductsTab() {
   }
 
   const handleUpdateCsvLoad = (csvText: string) => {
-    setUpdateCsvContent(csvText)
     const parsed = parseCSV(csvText)
     if (parsed.length < 2) return
 
@@ -466,7 +498,7 @@ export function ProductsTab() {
       return
     }
 
-    const updates: any[] = []
+    const updates: ValidatedUpdateRow[] = []
     let updatedCount = 0
     let notFoundCount = 0
     let errorCount = 0
@@ -483,7 +515,17 @@ export function ProductsTab() {
       if (!sku) {
         errors.push("SKU is empty on row " + (index + 2))
         errorCount++
-        updates.push({ sku: "EMPTY", errors, isValid: false })
+        updates.push({
+          index: index + 1,
+          sku: "EMPTY",
+          exists: false,
+          newPrice: null,
+          newStock: null,
+          availability: "",
+          status: "",
+          errors,
+          isValid: false,
+        })
         return
       }
 
@@ -491,8 +533,8 @@ export function ProductsTab() {
       const catalogProduct = rows.find(p => String(p.sku).toUpperCase() === sku.toUpperCase())
       const exists = !!catalogProduct
 
-      let priceNum = rawPrice ? Number(rawPrice) : null
-      let stockNum = rawStock ? Number(rawStock) : null
+      const priceNum = rawPrice ? Number(rawPrice) : null
+      const stockNum = rawStock ? Number(rawStock) : null
 
       if (priceNum !== null && (isNaN(priceNum) || priceNum <= 0)) {
         errors.push("New Price must be greater than 0.")
@@ -555,7 +597,7 @@ export function ProductsTab() {
       if (!upd.isValid || !upd.catalogProduct) return
       
       // Update catalog row values
-      const updatedFields: any = {}
+      const updatedFields: AdminRow = {}
       if (upd.newPrice !== null) updatedFields.price = upd.newPrice
       if (upd.newStock !== null) {
         updatedFields.stock = upd.newStock
@@ -566,7 +608,7 @@ export function ProductsTab() {
       }
       if (upd.availability) updatedFields.availability = upd.availability
       
-      updateRow(upd.catalogProduct._id, updatedFields)
+      updateRow(String(upd.catalogProduct._id), updatedFields)
     })
     setUpdateStep(3)
   }
@@ -577,7 +619,7 @@ export function ProductsTab() {
   return (
     <div className="space-y-4">
       {/* Sub tabs navigation */}
-      <div className="flex border-b border-slate-200 gap-1 bg-white p-1 rounded-[10px] shadow-sm">
+      <div className="flex border-b border-slate-200 gap-1 bg-white p-1.5 rounded-xl shadow-sm">
         {[
           { id: "list", label: "Product List", icon: Package },
           { id: "manual", label: "Manual Add Product", icon: PlusCircle },
@@ -587,16 +629,16 @@ export function ProductsTab() {
           <button
             key={tab.id}
             onClick={() => {
-              setActiveSubTab(tab.id as any)
+              setActiveSubTab(tab.id as ProductSubTab)
               // Reset status
               setManualSuccess(false)
               setImportStep(1)
               setUpdateStep(1)
             }}
             className={cn(
-              "flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-[8px] transition duration-200 cursor-pointer",
+              "flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg transition duration-200 cursor-pointer",
               activeSubTab === tab.id
-                ? "bg-[#fff6ed] text-[#f97316] shadow-inner"
+                ? "bg-orange-50 text-orange-600 shadow-inner"
                 : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
             )}
           >
@@ -608,85 +650,123 @@ export function ProductsTab() {
 
       {/* 1. PRODUCT LIST VIEW */}
       {activeSubTab === "list" && (
-        <Panel 
-          title={`Store Catalog (${filteredProducts.length} items)`}
-          description="Catalog dashboard for in-store inventory and storefront items."
-        >
-          {/* Controls */}
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-slate-50/60 p-3 rounded-[8px] border border-slate-100">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search SKU, name, brand..."
-                className="pl-9 h-10 border-slate-200"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Filter className="size-4 text-slate-400" />
+        <div className="space-y-4">
+          {/* Header Controls */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight">Products</h1>
+            
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <div className="relative w-56">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-orange-500" />
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search"
+                  className="h-10 rounded-full border-slate-200 bg-white pl-9 pr-4 text-sm focus-visible:border-orange-500 focus-visible:ring-orange-500/20"
+                />
+              </div>
+
+              {/* Filter by */}
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none"
+                className="h-10 rounded-full border-0 bg-orange-100 px-4 text-sm font-semibold text-orange-700 hover:bg-orange-200 transition-colors focus:ring-0 outline-none cursor-pointer"
               >
-                {categoryOptions.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
+                <option value="All">Filter by: All</option>
+                {categoryOptions.map(c => (
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
+
+              {/* Add product button */}
+              <Button
+                type="button"
+                onClick={() => {
+                  setManualSuccess(false)
+                  setActiveSubTab("manual")
+                }}
+                className="h-10 rounded-full bg-orange-600 px-5 text-sm font-semibold text-white hover:bg-orange-700"
+              >
+                <PlusCircle className="size-4" />
+                Add Product
+              </Button>
             </div>
           </div>
 
-          <TableShell columns={["Product", "SKU", "Category", "Brand", "Price", "Stock", "Status", "Featured", "Availability", ""]}>
-            {filteredProducts.map((product) => (
-              <tr key={String(product._id)} className="hover:bg-[#fffaf4]/20 transition">
-                <Cell>
-                  <div className="flex items-center gap-3">
-                    <span className="grid size-10 place-items-center rounded-[8px] bg-[#f5f5f6]">
-                      <Package className="size-4 text-slate-500" />
-                    </span>
-                    <div>
-                      <span className="font-bold text-[#101322] block line-clamp-1">{product.name}</span>
-                      <span className="text-[10px] text-slate-400 font-semibold">{product.brand}</span>
-                    </div>
-                  </div>
-                </Cell>
-                <Cell className="font-semibold text-slate-500">{product.sku}</Cell>
-                <Cell className="text-xs font-semibold text-slate-600">{product.category}</Cell>
-                <Cell>{product.brand}</Cell>
-                <Cell className="font-black text-[#101322]">{formatPrice(Number(product.price))}</Cell>
-                <Cell className="font-semibold">{product.stock}</Cell>
-                <Cell><StatusBadge status={String(product.status)} /></Cell>
-                <Cell>
-                  <span className={cn("text-xs font-extrabold px-1.5 py-0.5 rounded", product.featured ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-500")}>
-                    {product.featured ? "Yes" : "No"}
-                  </span>
-                </Cell>
-                <Cell>
-                  <span className={cn("text-xs font-bold", String(product.availability || "In Stock") === "In Stock" ? "text-emerald-600" : "text-rose-500")}>
-                    {String(product.availability || "In Stock")}
-                  </span>
-                </Cell>
-                <Cell>
-                  <div className="flex items-center justify-end gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => deleteRow(String(product._id))}
-                      className="rounded-[8px] text-slate-500 hover:text-rose-500 cursor-pointer"
-                      aria-label="Delete product"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                </Cell>
-              </tr>
-            ))}
-          </TableShell>
-        </Panel>
+          {/* Table */}
+          <div className="bg-white border border-slate-150 rounded-2xl shadow-sm overflow-hidden">
+            <TableShell columns={["", "Name of product", "Status", "Stock Info", "Category", "Location", ""]}>
+              {filteredProducts.map((product) => {
+                const isSoldOut = String(product.status) === "Sold Out";
+                return (
+                  <TableRow
+                    key={String(product._id)}
+                    className={cn(
+                      "hover:bg-orange-50/10 transition-colors",
+                      isSoldOut && "opacity-55"
+                    )}
+                  >
+                    {/* Circular Checkbox */}
+                    <Cell className="w-10">
+                      <div className="size-5 rounded-full border border-orange-300 flex items-center justify-center cursor-pointer hover:border-orange-500">
+                        <span className="size-2.5 rounded-full bg-orange-600 scale-0 transition-transform" />
+                      </div>
+                    </Cell>
+
+                    {/* Image & Product Name */}
+                    <Cell>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={String(product.image ?? "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=150")}
+                          alt={String(product.name)}
+                          className="size-11 rounded-lg object-cover border border-slate-100 flex-shrink-0"
+                        />
+                        <span className="font-semibold text-slate-800 text-sm">{product.name}</span>
+                      </div>
+                    </Cell>
+
+                    {/* Status Badge */}
+                    <Cell>
+                      <StatusBadge status={String(product.status)} />
+                    </Cell>
+
+                    {/* Stock Info */}
+                    <Cell className="font-semibold text-slate-700">
+                      {product.stock} in stock
+                    </Cell>
+
+                    {/* Category */}
+                    <Cell className="font-medium text-slate-500">
+                      {product.category}
+                    </Cell>
+
+                    {/* Location */}
+                    <Cell className="font-medium text-slate-500">
+                      {product.location ?? 0} stores
+                    </Cell>
+
+                    {/* Delete controls */}
+                    <Cell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => deleteRow(String(product._id))}
+                          className="size-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                          aria-label="Delete product"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    </Cell>
+                  </TableRow>
+                );
+              })}
+            </TableShell>
+          </div>
+        </div>
       )}
 
       {/* 2. MANUAL ADD PRODUCT FORM */}
@@ -709,7 +789,7 @@ export function ProductsTab() {
               <div className="flex gap-2 justify-center pt-2">
                 <Button
                   onClick={() => setManualSuccess(false)}
-                  className="rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c]"
+                  className="rounded-[8px] bg-[#ea580c] text-white hover:bg-[#c2410c]"
                 >
                   Add Another Product
                 </Button>
@@ -725,7 +805,7 @@ export function ProductsTab() {
           ) : (
             <form onSubmit={handleManualSubmit} className="space-y-6">
               <div className="bg-slate-50/80 p-4 rounded-[10px] border border-slate-100">
-                <h3 className="text-xs font-black text-[#f97316] uppercase tracking-wider mb-4">Required Parameters</h3>
+                <h3 className="text-xs font-black text-[#ea580c] uppercase tracking-wider mb-4">Required Parameters</h3>
                 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-1">
@@ -741,15 +821,15 @@ export function ProductsTab() {
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Category</label>
-                    <select
+                    <Select
                       value={manualForm.category}
                       onChange={(e) => setManualForm({ ...manualForm, category: e.target.value })}
-                      className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                      className="h-10 rounded-[8px] border-slate-200 bg-white text-sm font-semibold text-slate-800"
                     >
                       {VALID_CATEGORIES.map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-1">
@@ -800,41 +880,41 @@ export function ProductsTab() {
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Availability</label>
-                    <select
+                    <Select
                       value={manualForm.availability}
                       onChange={(e) => setManualForm({ ...manualForm, availability: e.target.value })}
-                      className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                      className="h-10 rounded-[8px] border-slate-200 bg-white text-sm font-semibold text-slate-800"
                     >
                       {["In Stock", "Out of Stock", "Preorder"].map((a) => (
                         <option key={a} value={a}>{a}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Featured On Site</label>
-                    <select
+                    <Select
                       value={manualForm.featured}
                       onChange={(e) => setManualForm({ ...manualForm, featured: e.target.value })}
-                      className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                      className="h-10 rounded-[8px] border-slate-200 bg-white text-sm font-semibold text-slate-800"
                     >
                       {["No", "Yes"].map((f) => (
                         <option key={f} value={f}>{f}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Product Status</label>
-                    <select
+                    <Select
                       value={manualForm.status}
                       onChange={(e) => setManualForm({ ...manualForm, status: e.target.value })}
-                      className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                      className="h-10 rounded-[8px] border-slate-200 bg-white text-sm font-semibold text-slate-800"
                     >
                       {["Published", "Draft"].map((s) => (
                         <option key={s} value={s}>{s}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -901,15 +981,15 @@ export function ProductsTab() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Condition</label>
-                    <select
+                    <Select
                       value={manualForm.condition}
                       onChange={(e) => setManualForm({ ...manualForm, condition: e.target.value })}
-                      className="w-full h-9 px-2 rounded-[8px] border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none"
+                      className="h-9 rounded-[8px] border-slate-200 bg-white text-xs font-semibold text-slate-800"
                     >
                       {["New", "Refurbished", "Pre-Owned"].map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Old Price (NPR)</label>
@@ -981,7 +1061,7 @@ export function ProductsTab() {
                 </Button>
                 <Button
                   type="submit"
-                  className="rounded-[8px] bg-[#f97316] hover:bg-[#ea580c] text-white font-bold h-11 px-6 shadow-md shadow-orange-500/10 cursor-pointer"
+                  className="rounded-[8px] bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold h-11 px-6 shadow-md shadow-black/5 cursor-pointer"
                 >
                   Save to Catalog
                 </Button>
@@ -1010,7 +1090,7 @@ export function ProductsTab() {
                 className={cn(
                   "pb-1 border-b-2 transition duration-200", 
                   importStep === step.num 
-                    ? "border-[#f97316] text-[#f97316]" 
+                    ? "border-[#ea580c] text-[#ea580c]" 
                     : importStep > step.num 
                       ? "border-emerald-500 text-emerald-600" 
                       : "border-transparent text-slate-400"
@@ -1052,7 +1132,7 @@ export function ProductsTab() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="rounded-[8px] h-11 border-dashed border-2 hover:border-[#f97316]/50"
+                    className="rounded-[8px] h-11 border-dashed border-2 hover:border-[#ea580c]/50"
                   >
                     Upload Custom CSV
                   </Button>
@@ -1061,7 +1141,7 @@ export function ProductsTab() {
 
               <div className="bg-slate-50 border border-slate-100 rounded-[8px] p-4 text-left text-xs text-slate-500 space-y-2 mt-4">
                 <p className="font-bold text-slate-700 flex items-center gap-1">
-                  <Info className="size-3.5 text-[#f97316]" /> Schema Requirements
+                  <Info className="size-3.5 text-[#ea580c]" /> Schema Requirements
                 </p>
                 <ul className="list-disc pl-4 space-y-1 font-medium">
                   <li>Category must be Mobile, Laptop, Tablet, Smartwatch, or Accessory.</li>
@@ -1093,15 +1173,15 @@ export function ProductsTab() {
                         {field.replace("_", " ")} <span className="text-rose-500">*</span>
                       </div>
                       <div>
-                        <select
+                        <Select
                           value={columnMappings[field]}
                           onChange={(e) => setColumnMappings({ ...columnMappings, [field]: e.target.value })}
-                          className="h-10 w-full max-w-sm px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none"
+                          className="h-10 max-w-sm rounded-[8px] border-slate-200 bg-white text-sm font-semibold text-slate-800"
                         >
                           {csvHeaders.map((h) => (
                             <option key={h} value={h}>{h}</option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
                     </div>
                   ))}
@@ -1118,7 +1198,7 @@ export function ProductsTab() {
                 </Button>
                 <Button
                   onClick={startValidation}
-                  className="rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c] font-bold"
+                  className="rounded-[8px] bg-[#ea580c] text-white hover:bg-[#c2410c] font-bold"
                 >
                   Validate Data Sheet
                 </Button>
@@ -1165,7 +1245,7 @@ export function ProductsTab() {
                 <div className="max-h-[350px] overflow-y-auto" data-lenis-prevent>
                   <TableShell columns={["Row", "Status", "SKU", "Product Name", "Category", "Price", "Stock", "Errors"]}>
                     {validatedImportRows.map((row) => (
-                      <tr key={row.index} className={cn("hover:bg-slate-50/50", !row.isValid && "bg-rose-50/20")}>
+                      <TableRow key={row.index} className={cn("hover:bg-slate-50/50", !row.isValid && "bg-rose-50/20")}>
                         <Cell className="font-semibold text-slate-400">#{row.index}</Cell>
                         <Cell>
                           {row.isValid ? (
@@ -1188,7 +1268,7 @@ export function ProductsTab() {
                             <span key={i} className="block">• {e}</span>
                           ))}
                         </Cell>
-                      </tr>
+                      </TableRow>
                     ))}
                   </TableShell>
                 </div>
@@ -1237,7 +1317,7 @@ export function ProductsTab() {
               <div className="flex gap-2 justify-center pt-2">
                 <Button
                   onClick={() => setImportStep(1)}
-                  className="rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c] font-bold"
+                  className="rounded-[8px] bg-[#ea580c] text-white hover:bg-[#c2410c] font-bold"
                 >
                   Import Another Sheet
                 </Button>
@@ -1272,7 +1352,7 @@ export function ProductsTab() {
                 className={cn(
                   "pb-1 border-b-2 transition duration-200", 
                   updateStep === step.num 
-                    ? "border-[#f97316] text-[#f97316]" 
+                    ? "border-[#ea580c] text-[#ea580c]" 
                     : updateStep > step.num 
                       ? "border-emerald-500 text-emerald-600" 
                       : "border-transparent text-slate-400"
@@ -1314,7 +1394,7 @@ export function ProductsTab() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="rounded-[8px] h-11 border-dashed border-2 hover:border-[#f97316]/50"
+                    className="rounded-[8px] h-11 border-dashed border-2 hover:border-[#ea580c]/50"
                   >
                     Upload Custom CSV
                   </Button>
@@ -1323,7 +1403,7 @@ export function ProductsTab() {
 
               <div className="bg-slate-50 border border-slate-100 rounded-[8px] p-4 text-left text-xs text-slate-500 space-y-2 mt-4">
                 <p className="font-bold text-slate-700 flex items-center gap-1">
-                  <Info className="size-3.5 text-[#f97316]" /> Schema Fields
+                  <Info className="size-3.5 text-[#ea580c]" /> Schema Fields
                 </p>
                 <ul className="list-disc pl-4 space-y-1 font-medium">
                   <li><strong>SKU</strong> (Required for match)</li>
@@ -1366,52 +1446,56 @@ export function ProductsTab() {
 
                 <div className="max-h-[350px] overflow-y-auto" data-lenis-prevent>
                   <TableShell columns={["Row", "Status", "SKU", "Catalog Name", "Change Summary", "Warnings/Errors"]}>
-                    {validatedUpdateRows.map((upd) => (
-                      <tr key={upd.index} className={cn("hover:bg-slate-50/50", !upd.exists && "bg-amber-50/20", upd.errors.length > 0 && !upd.isValid && "bg-rose-50/20")}>
-                        <Cell className="font-semibold text-slate-400">#{upd.index}</Cell>
-                        <Cell>
-                          {upd.isValid ? (
-                            <span className="flex items-center gap-1 text-emerald-600 text-xs font-black">
-                              <CheckCircle className="size-3.5 shrink-0" /> Ready
-                            </span>
-                          ) : !upd.exists ? (
-                            <span className="flex items-center gap-1 text-amber-600 text-xs font-black">
-                              <AlertTriangle className="size-3.5 shrink-0" /> Not Found
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-rose-500 text-xs font-black">
-                              <X className="size-3.5 shrink-0" /> Error
-                            </span>
-                          )}
-                        </Cell>
-                        <Cell className="font-semibold">{upd.sku}</Cell>
-                        <Cell className="font-semibold">
-                          {upd.exists ? upd.catalogProduct.name : <span className="text-slate-400">—</span>}
-                        </Cell>
-                        <Cell className="text-xs font-semibold text-slate-600">
-                          {upd.exists ? (
-                            <div className="space-y-0.5">
-                              {upd.newPrice !== null && (
-                                <p>Price: <span className="line-through text-slate-400">{formatPrice(upd.catalogProduct.price)}</span> → <span className="font-bold text-[#f97316]">{formatPrice(upd.newPrice)}</span></p>
-                              )}
-                              {upd.newStock !== null && (
-                                <p>Stock: <span className="line-through text-slate-400">{upd.catalogProduct.stock}</span> → <span className="font-bold text-slate-900">{upd.newStock}</span></p>
-                              )}
-                              {upd.availability && upd.availability !== String(upd.catalogProduct.availability) && (
-                                <p>Availability: <span className="font-bold text-[#2b0f52]">{upd.availability}</span></p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400">No action</span>
-                          )}
-                        </Cell>
-                        <Cell className="text-xs text-rose-500 max-w-xs">
-                          {upd.errors.map((e: string, i: number) => (
-                            <span key={i} className="block">• {e}</span>
-                          ))}
-                        </Cell>
-                      </tr>
-                    ))}
+                    {validatedUpdateRows.map((upd) => {
+                      const catalogProduct = upd.catalogProduct
+
+                      return (
+                        <TableRow key={upd.index} className={cn("hover:bg-slate-50/50", !upd.exists && "bg-amber-50/20", upd.errors.length > 0 && !upd.isValid && "bg-rose-50/20")}>
+                          <Cell className="font-semibold text-slate-400">#{upd.index}</Cell>
+                          <Cell>
+                            {upd.isValid ? (
+                              <span className="flex items-center gap-1 text-emerald-600 text-xs font-black">
+                                <CheckCircle className="size-3.5 shrink-0" /> Ready
+                              </span>
+                            ) : !upd.exists ? (
+                              <span className="flex items-center gap-1 text-amber-600 text-xs font-black">
+                                <AlertTriangle className="size-3.5 shrink-0" /> Not Found
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-rose-500 text-xs font-black">
+                                <X className="size-3.5 shrink-0" /> Error
+                              </span>
+                            )}
+                          </Cell>
+                          <Cell className="font-semibold">{upd.sku}</Cell>
+                          <Cell className="font-semibold">
+                            {catalogProduct ? catalogProduct.name : <span className="text-slate-400">—</span>}
+                          </Cell>
+                          <Cell className="text-xs font-semibold text-slate-600">
+                            {catalogProduct ? (
+                              <div className="space-y-0.5">
+                                {upd.newPrice !== null && (
+                                  <p>Price: <span className="line-through text-slate-400">{formatPrice(Number(catalogProduct.price))}</span> → <span className="font-bold text-[#ea580c]">{formatPrice(upd.newPrice)}</span></p>
+                                )}
+                                {upd.newStock !== null && (
+                                  <p>Stock: <span className="line-through text-slate-400">{catalogProduct.stock}</span> → <span className="font-bold text-slate-900">{upd.newStock}</span></p>
+                                )}
+                                {upd.availability && upd.availability !== String(catalogProduct.availability) && (
+                                  <p>Availability: <span className="font-bold text-[#2b0f52]">{upd.availability}</span></p>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">No action</span>
+                            )}
+                          </Cell>
+                          <Cell className="text-xs text-rose-500 max-w-xs">
+                            {upd.errors.map((e: string, i: number) => (
+                              <span key={i} className="block">• {e}</span>
+                            ))}
+                          </Cell>
+                        </TableRow>
+                      )
+                    })}
                   </TableShell>
                 </div>
               </div>
@@ -1459,7 +1543,7 @@ export function ProductsTab() {
               <div className="flex gap-2 justify-center pt-2">
                 <Button
                   onClick={() => setUpdateStep(1)}
-                  className="rounded-[8px] bg-[#f97316] text-white hover:bg-[#ea580c] font-bold"
+                  className="rounded-[8px] bg-[#ea580c] text-white hover:bg-[#c2410c] font-bold"
                 >
                   Upload Another Update Sheet
                 </Button>
