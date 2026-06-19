@@ -9,9 +9,7 @@ import {
   ChevronRight,
   Cpu,
   Headphones,
-  Laptop,
   MapPin,
-  Monitor,
   Search,
   ShoppingCart,
   Smartphone,
@@ -49,28 +47,22 @@ type TopCategory = {
 }
 
 const categories: TopCategory[] = [
-  { name: "Laptop", icon: Laptop },
   { name: "Apple", icon: Smartphone },
   { name: "Samsung", icon: Smartphone },
-  { name: "Infinix", icon: Smartphone },
-  { name: "HONOR", icon: Smartphone },
-  { name: "Xiaomi", icon: Smartphone },
   { name: "OnePlus", icon: Smartphone },
+  { name: "Nothing", icon: Smartphone },
+  { name: "Redmi", icon: Smartphone },
+  { name: "Xiaomi", icon: Smartphone },
+  { name: "POCO", icon: Smartphone },
   { name: "OPPO", icon: Smartphone },
   { name: "vivo", icon: Smartphone },
-  { name: "Nothing", icon: Smartphone },
   { name: "realme", icon: Smartphone },
-  { name: "TECNO", icon: Smartphone },
+  { name: "Infinix", icon: Smartphone },
+  { name: "HONOR", icon: Smartphone },
   { name: "Motorola", icon: Smartphone },
-  { name: "ASUS ROG", icon: Smartphone },
   { name: "Smart Phone", icon: Smartphone },
-  { name: "Tablet", icon: Smartphone },
-  { name: "Monitor", icon: Monitor },
-  { name: "PC Components", icon: Cpu },
-  { name: "Projector", icon: Monitor },
   { name: "Earbuds", icon: Headphones },
-  { name: "Headphone", icon: Headphones },
-  { name: "Projector Accessories", icon: Cpu },
+  { name: "Accessories", icon: Cpu },
 ]
 
 type SidebarProduct = {
@@ -93,100 +85,45 @@ type SidebarCategory = {
 
 const rawSidebarCategories: SidebarCategory[] = [
   {
-    name: "Laptop",
-    brands: [
-      {
-        name: "Apple MacBooks",
-        products: [
-          { id: "macbook-air-m3", name: "Apple MacBook Air 13-inch M3", price: 189999, originalPrice: 209999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_7d413a689e_a024efb545f5da31.png" },
-          { id: "dell-xps-15", name: "Dell XPS 15 9530 Core i7", price: 249999, originalPrice: 279999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_d206f02e72_6f218a20f0539554.png" }
-        ]
-      }
-    ]
-  },
-  {
-    name: "Apple",
-    brands: [
-      {
-        name: "Apple Devices",
-        products: [
-          { id: "iphone-15-pro", name: "Apple iPhone 15 Pro 256GB", price: 179999, originalPrice: 199999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_fc51d7952f_5e8b3ea510d43dbe.png" },
-          { id: "airpods-pro-2", name: "Apple AirPods Pro 2nd Gen", price: 39999, originalPrice: 44999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_181a2f3663_0d08569ab5b28569.png" }
-        ]
-      }
-    ]
-  },
-  {
     name: "Smart Phone",
     brands: [
       {
         name: "Flagship Phones",
         products: [
-          { id: "samsung-s24-ultra", name: "Samsung Galaxy S24 Ultra", price: 189999, originalPrice: 214999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_24b8334659_e5c018b3c994b65e.png" },
-          { id: "asus-rog-phone-8", name: "ASUS ROG Phone 8 Pro 512GB", price: 199999, originalPrice: 219999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_a3aed3a62d_e2c79f33261ed0d6.png" }
+          { id: "apple-iphone-17-pro-max", name: "Apple iPhone 17 Pro Max", price: 247999, image: "" },
+          { id: "samsung-galaxy-s26-ultra", name: "Samsung Galaxy S26 Ultra", price: 202999, image: "" },
+          { id: "oneplus-15", name: "OnePlus 15", price: 169999, image: "" },
+          { id: "xiaomi-17-ultra", name: "Xiaomi 17 Ultra", price: 199999, image: "" }
         ]
       },
       {
-        name: "Budget & Entry",
+        name: "Latest Android",
         products: [
-          { id: "infinix-smart-10", name: "Infinix Smart 10 4GB/64GB", price: 12999, originalPrice: 14999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_fc51d7952f_5e8b3ea510d43dbe.png" }
-        ]
-      }
-    ]
-  },
-  {
-    name: "Tablet",
-    brands: [
-      {
-        name: "Tablets & iPads",
-        products: [
-          { id: "iphone-15-pro", name: "Apple iPad Pro M2", price: 129999, originalPrice: 139999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_fc51d7952f_5e8b3ea510d43dbe.png" }
-        ]
-      }
-    ]
-  },
-  {
-    name: "Monitor",
-    brands: [
-      {
-        name: "Lenovo Monitors",
-        products: [
-          { id: "lenovo-gaming-24", name: "Lenovo 24-inch Gaming Monitor", price: 25000, originalPrice: 28000, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_c3f124c435_27aba7988df0bb3a.png" },
-          { id: "lenovo-gaming-27", name: "Lenovo 27-inch Gaming Monitor", price: 30000, originalPrice: 35000, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_c3f124c435_27aba7988df0bb3a.png" }
+          { id: "nothing-phone-3", name: "Nothing Phone (3)", price: 99999, image: "" },
+          { id: "vivo-x300-pro", name: "Vivo X300 Pro", price: 179999, image: "" },
+          { id: "oppo-find-n5", name: "Oppo Find N5", price: 249999, image: "" },
+          { id: "poco-f8-pro", name: "Poco F8 Pro", price: 99999, image: "" }
         ]
       },
       {
-        name: "Acer Monitors",
+        name: "Value & Midrange",
         products: [
-          { id: "acer-monitor-22", name: "Acer 21.5-inch Monitor", price: 15000, originalPrice: 18000, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_c3f124c435_27aba7988df0bb3a.png" }
+          { id: "redmi-15-4g", name: "Redmi 15 4G", price: 24999, image: "" },
+          { id: "redmi-note-15-pro", name: "Redmi Note 15 Pro", price: 53999, image: "" },
+          { id: "motorola-g96-5g", name: "Motorola G96 5G", price: 44999, image: "" },
+          { id: "infinix-gt-30-pro", name: "Infinix GT 30 Pro", price: 47999, image: "" }
         ]
       }
     ]
   },
   {
-    name: "PC Component",
+    name: "Accessories",
     brands: [
       {
-        name: "Logitech Peripherals",
+        name: "Chargers & Wearables",
         products: [
-          { id: "logitech-mx-master-3s", name: "Logitech MX Master 3S Mouse", price: 12999, originalPrice: 16999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_2d5fbac152_464b19ac3186b14e.png" }
-        ]
-      }
-    ]
-  },
-  {
-    name: "Projector",
-    brands: [
-      {
-        name: "BenQ Projectors",
-        products: [
-          { id: "benq-mh560", name: "BenQ MH560 Projector", price: 95000, originalPrice: 110000, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_119853faf6_22d9f2fe35fe8ed5.png" }
-        ]
-      },
-      {
-        name: "Wanbo Projectors",
-        products: [
-          { id: "wanbo-t2-max", name: "Wanbo T2 Max Projector", price: 22000, originalPrice: 25000, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_119853faf6_22d9f2fe35fe8ed5.png" }
+          { id: "apple-20watt-usb-c-power-adapter", name: "Apple 20Watt USB-C Power Adapter", price: 4499, image: "" },
+          { id: "cmf-watch-pro-3", name: "CMF Watch Pro 3", price: 13999, image: "" }
         ]
       }
     ]
@@ -197,35 +134,8 @@ const rawSidebarCategories: SidebarCategory[] = [
       {
         name: "Wireless Buds",
         products: [
-          { id: "airpods-pro-2", name: "Apple AirPods Pro 2nd Gen", price: 39999, originalPrice: 44999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_181a2f3663_0d08569ab5b28569.png" }
-        ]
-      }
-    ]
-  },
-  {
-    name: "Headphone",
-    brands: [
-      {
-        name: "Sonic Gear",
-        products: [
-          { id: "sonic-gear-xenon-2", name: "Sonic Gear Xenon 2 Headphone", price: 2000, originalPrice: 2500, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_9e9d822318_955d2557e14ff237.png" }
-        ]
-      },
-      {
-        name: "Armaggeddon Headset",
-        products: [
-          { id: "armaggeddon-pulse-7", name: "Armaggeddon Pulse 7 Gaming Headset", price: 2500, originalPrice: 3200, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_9e9d822318_955d2557e14ff237.png" }
-        ]
-      }
-    ]
-  },
-  {
-    name: "Accessories",
-    brands: [
-      {
-        name: "Premium Accessories",
-        products: [
-          { id: "fantech-wgd01", name: "FANTECH WGD01 Standing Desk", price: 25499, originalPrice: 29999, image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_2d5fbac152_464b19ac3186b14e.png" }
+          { id: "redmi-buds-6-play", name: "Redmi Buds 6 Play", price: 2499, image: "" },
+          { id: "samsung-galaxy-buds-fe", name: "Samsung Galaxy Buds FE", price: 15999, image: "" }
         ]
       }
     ]
@@ -235,17 +145,17 @@ const rawSidebarCategories: SidebarCategory[] = [
 const featuredPhoneBrands = [
   { name: "Apple", brand: "Apple" },
   { name: "Samsung", brand: "Samsung" },
-  { name: "Infinix", brand: "Infinix" },
-  { name: "HONOR", brand: "HONOR" },
-  { name: "Xiaomi", brand: "Xiaomi" },
   { name: "OnePlus", brand: "OnePlus" },
+  { name: "Nothing", brand: "Nothing" },
+  { name: "Redmi", brand: "Redmi" },
+  { name: "Xiaomi", brand: "Xiaomi" },
+  { name: "POCO", brand: "POCO" },
   { name: "OPPO", brand: "OPPO" },
   { name: "vivo", brand: "vivo" },
-  { name: "Nothing", brand: "Nothing" },
   { name: "realme", brand: "realme" },
-  { name: "TECNO", brand: "TECNO" },
+  { name: "Infinix", brand: "Infinix" },
+  { name: "HONOR", brand: "HONOR" },
   { name: "Motorola", brand: "Motorola" },
-  { name: "ASUS ROG", brand: "ASUS" },
 ]
 
 const catalogById = new Map(products.map((product) => [product.id, product]))
@@ -270,6 +180,7 @@ function enrichSidebarProduct(product: SidebarProduct): SidebarProduct {
 
   return {
     ...product,
+    name: catalogProduct.name,
     price: catalogProduct.price,
     originalPrice: catalogProduct.originalPrice,
     image: catalogProduct.image,
@@ -314,7 +225,7 @@ export function StorefrontHeader({
   onLoginOpen,
 }: StorefrontHeaderProps) {
   const [megaOpen, setMegaOpen] = React.useState(false)
-  const [activeCategory, setActiveCategory] = React.useState("Laptop")
+  const [activeCategory, setActiveCategory] = React.useState("Smart Phone")
   const [searchQuery, setSearchQuery] = React.useState("")
   const [searchFocused, setSearchFocused] = React.useState(false)
   const [headerVisible, setHeaderVisible] = React.useState(true)
@@ -522,7 +433,7 @@ export function StorefrontHeader({
       >
         <div className="px-4 py-1.5">
           <div className="mx-auto flex max-w-7xl items-center justify-between text-xs font-semibold">
-            <span>World Cup Special Sale is Live</span>
+            <span>Real Nepal phone prices updated Jun 19, 2026</span>
             <a href="#footer" className="flex items-center gap-1.5">
               <MapPin className="size-3.5" />
               Find our store
@@ -984,7 +895,7 @@ export function StorefrontHeader({
                     onChange={(e) => setRepairBrand(e.target.value)}
                     className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316]"
                   >
-                    {["Apple", "Samsung", "OnePlus", "Xiaomi", "vivo", "OPPO", "Nothing", "realme", "TECNO"].map((b) => (
+                    {["Apple", "Samsung", "OnePlus", "Nothing", "Redmi", "Xiaomi", "POCO", "vivo", "OPPO", "realme", "Infinix", "HONOR", "Motorola"].map((b) => (
                       <option key={b} value={b}>{b}</option>
                     ))}
                   </select>
@@ -1117,7 +1028,7 @@ export function StorefrontHeader({
                     onChange={(e) => setSellBrand(e.target.value)}
                     className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316]"
                   >
-                    {["Apple", "Samsung", "OnePlus", "Xiaomi", "vivo", "OPPO", "Nothing", "realme", "TECNO"].map((b) => (
+                    {["Apple", "Samsung", "OnePlus", "Nothing", "Redmi", "Xiaomi", "POCO", "vivo", "OPPO", "realme", "Infinix", "HONOR", "Motorola"].map((b) => (
                       <option key={b} value={b}>{b}</option>
                     ))}
                   </select>
@@ -1258,7 +1169,7 @@ export function StorefrontHeader({
                       onChange={(e) => setExchangeOldBrand(e.target.value)}
                       className="w-full h-9 px-2 rounded-[8px] border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#f97316]"
                     >
-                      {["Apple", "Samsung", "OnePlus", "Xiaomi", "vivo", "OPPO", "Nothing", "realme", "TECNO"].map((b) => (
+                      {["Apple", "Samsung", "OnePlus", "Nothing", "Redmi", "Xiaomi", "POCO", "vivo", "OPPO", "realme", "Infinix", "HONOR", "Motorola"].map((b) => (
                         <option key={b} value={b}>{b}</option>
                       ))}
                     </select>

@@ -31,7 +31,7 @@ import { Select } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 // Available system categories
-const VALID_CATEGORIES = ["Mobile", "Laptop", "Tablet", "Smartwatch", "Accessory", "T-Shirt", "T-shirts", "Tops", "Outwear", "Bottoms", "Dresses", "Accessories"]
+const VALID_CATEGORIES = ["Smart Phone", "Accessories", "Earbuds"]
 
 type ProductSubTab = "list" | "manual" | "import" | "update"
 
@@ -91,18 +91,18 @@ function parseCSV(text: string): string[][] {
 
 // Sample CSV templates for demo
 const DEMO_IMPORT_CSV = `SKU,Product_Name,Category,Brand,Price_NPR,Stock_Quantity,Availability,Featured,Product_Status,Color,Condition
-APL-IP15P-128,Apple iPhone 15 Pro 128GB,Mobile,Apple,145000,15,In Stock,Yes,Published,Black,New
-SAM-S24-256,Samsung Galaxy S24 256GB,Mobile,Samsung,119000,0,Out of Stock,No,Published,Gray,New
-XIA-14-512,Xiaomi 14 512GB,Mobile,Xiaomi,99000,8,In Stock,Yes,Draft,Green,New
-BAD-SKU-1,Invalid Price Phone,Mobile,Generic,-5000,10,In Stock,No,Published,Black,New
-APL-IP15P-128,Duplicate SKU Phone,Mobile,Apple,140000,5,In Stock,No,Published,Gold,New
-XIA-14-512,Invalid Category Laptop,Desktop,Xiaomi,150000,3,In Stock,No,Published,Silver,New`
+APPLE-IPHONE-17-PRO-MAX,Apple iPhone 17 Pro Max 12GB/256GB,Smart Phone,Apple,247999,15,In Stock,Yes,Published,Silver,New
+SAMSUNG-GALAXY-S26-ULTRA,Samsung Galaxy S26 Ultra 12GB/256GB,Smart Phone,Samsung,202999,8,In Stock,Yes,Published,Gray,New
+CMF-WATCH-PRO-3,CMF Watch Pro 3,Accessories,CMF by Nothing,13999,12,In Stock,No,Published,Light Grey,New
+BAD-SKU-1,Invalid Price Phone,Smart Phone,Generic,-5000,10,In Stock,No,Published,Black,New
+APPLE-IPHONE-17-PRO-MAX,Duplicate SKU Phone,Smart Phone,Apple,240000,5,In Stock,No,Published,Gold,New
+REDMI-NOTE-15-PRO,Invalid Category Phone,Desktop,Redmi,53999,3,In Stock,No,Published,Black,New`
 
 const DEMO_UPDATE_CSV = `SKU,New_Price_NPR,New_Stock_Quantity,Availability,Product_Status
-MBA-M3-256,184999,10,In Stock,Published
-SAM-S24U-512,179999,0,Out of Stock,Published
+APPLE-IPHONE-17-PRO-MAX,247999,10,In Stock,Published
+SAMSUNG-GALAXY-S26-ULTRA,202999,0,Out of Stock,Published
 INVALID-SKU-999,50000,5,In Stock,Published
-WAN-T2MAX,21000,0,Out of Stock,Published`
+CMF-WATCH-PRO-3,13999,0,Out of Stock,Published`
 
 export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
   const { rows, addRow, updateRow, deleteRow } = useAdminCollection("products")
@@ -379,7 +379,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
 
       if (!rawCategory) errors.push("Category is required.")
       else if (!VALID_CATEGORIES.includes(rawCategory)) {
-        errors.push(`Category '${rawCategory}' must be Mobile, Laptop, Tablet, Smartwatch, or Accessory.`)
+        errors.push(`Category '${rawCategory}' must be Smart Phone, Accessories, or Earbuds.`)
       }
 
       if (!rawBrand) errors.push("Brand is required.")
@@ -614,7 +614,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
   }
 
   // Categories list options
-  const categoryOptions = ["All", ...VALID_CATEGORIES, "Monitor", "Projector", "Earbuds", "Headphone"]
+  const categoryOptions = ["All", ...VALID_CATEGORIES]
 
   return (
     <div className="space-y-4">
@@ -848,7 +848,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
                     <Input
                       value={manualForm.name}
                       onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
-                      placeholder="e.g. Apple MacBook Pro 14 M3 Max"
+                      placeholder="e.g. Apple iPhone 17 Pro Max 12GB/256GB"
                       className={cn("h-10 border-slate-200 bg-white", manualErrors.name && "border-rose-500")}
                     />
                     {manualErrors.name && <span className="text-[10px] text-rose-500 font-bold block">{manualErrors.name}</span>}
@@ -1144,7 +1144,7 @@ export function ProductsTab({ createSignal }: { createSignal?: number } = {}) {
                   <Info className="size-3.5 text-[#ea580c]" /> Schema Requirements
                 </p>
                 <ul className="list-disc pl-4 space-y-1 font-medium">
-                  <li>Category must be Mobile, Laptop, Tablet, Smartwatch, or Accessory.</li>
+                  <li>Category must be Smart Phone, Accessories, or Earbuds.</li>
                   <li>Price must be positive, Stock must be non-negative integer.</li>
                   <li>SKU values must be unique in shop database.</li>
                 </ul>

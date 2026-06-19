@@ -1,10 +1,12 @@
+import { products } from "@/lib/products"
+
 export const orderRows = [
   {
     id: "ORD-1048",
     customer: "Siddhant Shrestha",
     phone: "9800001122",
-    products: "MacBook Air M3, AirPods Pro",
-    amount: 229998,
+    products: "Apple iPhone 17 Pro Max, CMF Watch Pro 3",
+    amount: 261998,
     payment: "Khalti",
     paymentStatus: "Paid",
     orderStatus: "Packed",
@@ -15,8 +17,8 @@ export const orderRows = [
     id: "ORD-1047",
     customer: "Aayush Maharjan",
     phone: "9812345678",
-    products: "Samsung Galaxy S24 Ultra",
-    amount: 189999,
+    products: "Samsung Galaxy S26 Ultra",
+    amount: 202999,
     payment: "EMI",
     paymentStatus: "Review",
     orderStatus: "Confirmed",
@@ -27,8 +29,8 @@ export const orderRows = [
     id: "ORD-1046",
     customer: "Priya Gurung",
     phone: "9841004455",
-    products: "Lenovo 24-inch Gaming Monitor",
-    amount: 25000,
+    products: "Redmi Note 15 Pro",
+    amount: 53999,
     payment: "COD",
     paymentStatus: "COD Pending",
     orderStatus: "Out for Delivery",
@@ -39,8 +41,8 @@ export const orderRows = [
     id: "ORD-1045",
     customer: "Niraj Karki",
     phone: "9867002211",
-    products: "Logitech MX Master 3S Mouse",
-    amount: 12999,
+    products: "Motorola G96 5G",
+    amount: 44999,
     payment: "eSewa",
     paymentStatus: "Paid",
     orderStatus: "Delivered",
@@ -49,125 +51,23 @@ export const orderRows = [
   },
 ]
 
-export const productRows = [
-  {
-    name: "Unisex T-Shirt White",
-    sku: "TSH-WHT-UNI",
-    category: "T-Shirt",
-    brand: "Basic",
-    price: 2500,
-    sale: 2500,
-    stock: 12,
-    status: "Active",
-    featured: true,
-    location: 3,
-    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    name: "Unisex T-Shirt Black",
-    sku: "TSH-BLK-UNI",
-    category: "T-Shirt",
-    brand: "Basic",
-    price: 2500,
-    sale: 2500,
-    stock: 10,
-    status: "Active",
-    featured: false,
-    location: 4,
-    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    name: "Tank Top White",
-    sku: "TNK-WHT-W",
-    category: "Tops",
-    brand: "Fit",
-    price: 1800,
-    sale: 1800,
-    stock: 28,
-    status: "Active",
-    featured: true,
-    location: 3,
-    image: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    name: "Rain Jacket Male",
-    sku: "JKT-RN-M",
-    category: "Outwear",
-    brand: "Storm",
-    price: 6500,
-    sale: 6500,
-    stock: 12,
-    status: "Active",
-    featured: false,
-    location: 3,
-    image: "https://images.unsplash.com/photo-1548883354-7622d03aca27?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    name: "Bomber Jacket Male",
-    sku: "JKT-BMB-M",
-    category: "Outwear",
-    brand: "Urban",
-    price: 7200,
-    sale: 7200,
-    stock: 0,
-    status: "Sold Out",
-    featured: false,
-    location: 0,
-    image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    name: "Unisex Socks Black",
-    sku: "SOX-BLK-UNI",
-    category: "Accessories",
-    brand: "Comfort",
-    price: 450,
-    sale: 450,
-    stock: 37,
-    status: "Active",
-    featured: false,
-    location: 2,
-    image: "https://images.unsplash.com/photo-1582966772680-860e372bb558?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    name: "Denim Shorts Women",
-    sku: "SHR-DNM-W",
-    category: "Bottoms",
-    brand: "Denim",
-    price: 3200,
-    sale: 3200,
-    stock: 1,
-    status: "Low Stock",
-    featured: false,
-    location: 1,
-    image: "https://images.unsplash.com/photo-1565084888279-aca607ecad0c?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    name: "Summer Dress Black",
-    sku: "DRS-SMR-BLK",
-    category: "Dresses",
-    brand: "Elegant",
-    price: 4800,
-    sale: 4800,
-    stock: 0,
-    status: "Sold Out",
-    featured: false,
-    location: 0,
-    image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    name: "Kids T-shirt Pink",
-    sku: "TSH-PNK-KID",
-    category: "T-shirts",
-    brand: "Play",
-    price: 1500,
-    sale: 1500,
-    stock: 1,
-    status: "Low Stock",
-    featured: false,
-    location: 1,
-    image: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=150&auto=format&fit=crop&q=60"
+export const productRows = products.map((product, index) => {
+  const stock = product.soldOut ? 0 : [16, 12, 9, 7, 5, 3][index % 6]
+
+  return {
+    name: product.name,
+    sku: product.id.toUpperCase().replace(/-/g, "-").slice(0, 24),
+    category: product.category,
+    brand: product.brand,
+    price: product.originalPrice ?? product.price,
+    sale: product.price,
+    stock,
+    status: product.soldOut ? "Sold Out" : stock <= 4 ? "Low Stock" : "Active",
+    featured: ["Flagship", "New"].includes(product.badge ?? ""),
+    location: product.soldOut ? 0 : (index % 4) + 1,
+    image: product.image,
   }
-]
+})
 
 export const trackingRows = [
   {
@@ -209,37 +109,38 @@ export const trackingTimeline = [
 ]
 
 export const inventoryRows = [
-  { sku: "MBA-M3-256", product: "MacBook Air M3", current: 12, sold: 8, returned: 1, damaged: 0, status: "In Stock" },
-  { sku: "LEN-G24-165", product: "Lenovo Gaming Monitor", current: 3, sold: 14, returned: 0, damaged: 1, status: "Low Stock" },
-  { sku: "WAN-T2MAX", product: "Wanbo T2 Max Projector", current: 0, sold: 6, returned: 0, damaged: 0, status: "Out of Stock" },
-  { sku: "AIRPODS-PRO2", product: "AirPods Pro 2nd Gen", current: 24, sold: 18, returned: 2, damaged: 0, status: "In Stock" },
+  { sku: "APL-17PM-256", product: "Apple iPhone 17 Pro Max", current: 12, sold: 8, returned: 1, damaged: 0, status: "In Stock" },
+  { sku: "RED-N15P-256", product: "Redmi Note 15 Pro", current: 3, sold: 14, returned: 0, damaged: 1, status: "Low Stock" },
+  { sku: "SGBUDS-FE", product: "Samsung Galaxy Buds FE", current: 0, sold: 6, returned: 0, damaged: 0, status: "Out of Stock" },
+  { sku: "CMF-WP3", product: "CMF Watch Pro 3", current: 24, sold: 18, returned: 2, damaged: 0, status: "In Stock" },
 ]
 
 export const categories = [
-  "Laptop",
   "Apple",
+  "Samsung",
+  "OnePlus",
+  "Nothing",
+  "Redmi",
+  "Xiaomi",
+  "POCO",
+  "OPPO",
+  "vivo",
+  "realme",
+  "Infinix",
+  "HONOR",
+  "Motorola",
   "Smart Phone",
-  "Tablet",
-  "Monitor",
-  "PC Components",
-  "Projector",
   "Earbuds",
-  "Headphone",
-  "Gaming Tables",
-  "Projector Accessories",
-  "Speaker",
-  "Drone",
-  "Microphone",
-  "Smart Watch",
+  "Accessories",
 ]
 
 export const brands = [
-  { name: "Apple", products: 18, status: "Featured", slug: "apple" },
-  { name: "Samsung", products: 14, status: "Featured", slug: "samsung" },
-  { name: "Lenovo", products: 22, status: "Active", slug: "lenovo" },
-  { name: "Fantech", products: 31, status: "Active", slug: "fantech" },
-  { name: "Wanbo", products: 8, status: "Active", slug: "wanbo" },
-  { name: "Asus", products: 16, status: "Active", slug: "asus" },
+  { name: "Apple", products: 6, status: "Featured", slug: "apple" },
+  { name: "Samsung", products: 4, status: "Featured", slug: "samsung" },
+  { name: "OnePlus", products: 4, status: "Featured", slug: "oneplus" },
+  { name: "Redmi", products: 3, status: "Active", slug: "redmi" },
+  { name: "Nothing", products: 4, status: "Active", slug: "nothing" },
+  { name: "Motorola", products: 3, status: "Active", slug: "motorola" },
 ]
 
 export const customers = [
@@ -250,57 +151,57 @@ export const customers = [
 ]
 
 export const carts = [
-  { owner: "Guest #8821", products: "MacBook Air M3, Mouse", value: 202998, activity: "18 min ago", checkout: "Started", recovery: "WhatsApp sent" },
-  { owner: "Priya Gurung", products: "Samsung S24 Ultra", value: 189999, activity: "44 min ago", checkout: "Not started", recovery: "Pending" },
-  { owner: "Aayush Maharjan", products: "AirPods Pro 2", value: 39999, activity: "2h ago", checkout: "Started", recovery: "Coupon applied" },
+  { owner: "Guest #8821", products: "Apple iPhone 17 Pro Max, CMF Watch Pro 3", value: 261998, activity: "18 min ago", checkout: "Started", recovery: "WhatsApp sent" },
+  { owner: "Priya Gurung", products: "Samsung Galaxy S26 Ultra", value: 202999, activity: "44 min ago", checkout: "Not started", recovery: "Pending" },
+  { owner: "Aayush Maharjan", products: "Redmi Buds 6 Play", value: 2499, activity: "2h ago", checkout: "Started", recovery: "Coupon applied" },
 ]
 
 export const coupons = [
   { code: "SAVE5", type: "Percentage", value: "5%", minimum: 5000, usage: "38/200", status: "Active" },
-  { code: "WORLD2026", type: "Fixed", value: "Rs. 2,026", minimum: 25000, usage: "12/80", status: "Active" },
-  { code: "LAPTOP10", type: "Percentage", value: "10%", minimum: 100000, usage: "7/50", status: "Scheduled" },
+  { code: "PHONE2026", type: "Fixed", value: "Rs. 2,026", minimum: 25000, usage: "12/80", status: "Active" },
+  { code: "FLAGSHIP10", type: "Percentage", value: "10%", minimum: 100000, usage: "7/50", status: "Scheduled" },
 ]
 
 export const homepageSections = [
-  { section: "Hero Banner", title: "Xiaomi 17T EMI", status: "Enabled", order: 1 },
-  { section: "World Cup Banner", title: "Projector bundle", status: "Enabled", order: 2 },
+  { section: "Hero Banner", title: "Xiaomi 17 Ultra EMI", status: "Enabled", order: 1 },
+  { section: "Launch Offer Banner", title: "Phone and accessory bundle", status: "Enabled", order: 2 },
   { section: "Pay Later Banner", title: "40% down payment", status: "Enabled", order: 8 },
   { section: "Blogs", title: "Buying guides", status: "Enabled", order: 12 },
   { section: "Footer", title: "Store info", status: "Enabled", order: 13 },
 ]
 
 export const banners = [
-  { title: "World Cup Projector Sale", type: "Wide banner", position: "Homepage", start: "17 Jun", end: "30 Jun", status: "Active" },
-  { title: "Laptop EMI Offer", type: "Hero banner", position: "Hero 1", start: "15 Jun", end: "28 Jun", status: "Active" },
+  { title: "Phone Launch Offer", type: "Wide banner", position: "Homepage", start: "17 Jun", end: "30 Jun", status: "Active" },
+  { title: "Flagship EMI Offer", type: "Hero banner", position: "Hero 1", start: "15 Jun", end: "28 Jun", status: "Active" },
   { title: "New Arrivals", type: "Category banner", position: "Products", start: "18 Jun", end: "05 Jul", status: "Draft" },
 ]
 
 export const reviews = [
-  { product: "MacBook Air M3", customer: "Siddhant", rating: 5, text: "Fast pickup and clean packaging.", status: "Approved" },
-  { product: "Samsung S24 Ultra", customer: "Aayush", rating: 4, text: "Need clarity on EMI documents.", status: "Pending" },
-  { product: "Lenovo Monitor", customer: "Priya", rating: 5, text: "Color accuracy is great.", status: "Approved" },
+  { product: "Apple iPhone 17 Pro Max", customer: "Siddhant", rating: 5, text: "Fast pickup and clean packaging.", status: "Approved" },
+  { product: "Samsung Galaxy S26 Ultra", customer: "Aayush", rating: 4, text: "Need clarity on EMI documents.", status: "Pending" },
+  { product: "CMF Watch Pro 3", customer: "Priya", rating: 5, text: "Color options were clearly shown.", status: "Approved" },
 ]
 
 export const questions = [
-  { product: "Wanbo T2 Max", question: "Does it include HDMI cable?", status: "Answered" },
-  { product: "MacBook Air M3", question: "Is EMI available for students?", status: "Pending" },
+  { product: "CMF Watch Pro 3", question: "Which colors are available?", status: "Answered" },
+  { product: "Apple iPhone 17 Pro Max", question: "Is EMI available for students?", status: "Pending" },
 ]
 
 export const blogs = [
-  { title: "RTX workstations for creators", category: "Buying guide", author: "Admin", status: "Published", date: "17 Jun" },
+  { title: "iPhone 17 Pro Max buying notes", category: "Buying guide", author: "Admin", status: "Published", date: "17 Jun" },
   { title: "Phone camera guide for Nepal", category: "Phones", author: "Support", status: "Draft", date: "18 Jun" },
-  { title: "How to choose a projector", category: "Projectors", author: "Admin", status: "Scheduled", date: "21 Jun" },
+  { title: "Best accessories from the new catalog", category: "Accessories", author: "Admin", status: "Scheduled", date: "21 Jun" },
 ]
 
 export const payments = [
-  { order: "ORD-1048", customer: "Siddhant", method: "Khalti", status: "Paid", amount: 229998, transaction: "KHALTI-7812" },
-  { order: "ORD-1047", customer: "Aayush", method: "EMI", status: "Review", amount: 189999, transaction: "EMI-REQ-44" },
-  { order: "ORD-1046", customer: "Priya", method: "COD", status: "COD Pending", amount: 25000, transaction: "COD" },
+  { order: "ORD-1048", customer: "Siddhant", method: "Khalti", status: "Paid", amount: 261998, transaction: "KHALTI-7812" },
+  { order: "ORD-1047", customer: "Aayush", method: "EMI", status: "Review", amount: 202999, transaction: "EMI-REQ-44" },
+  { order: "ORD-1046", customer: "Priya", method: "COD", status: "COD Pending", amount: 53999, transaction: "COD" },
 ]
 
 export const reports = [
   { name: "Sales report", value: "Rs. 12.4L", trend: "+18%", note: "Last 30 days" },
-  { name: "Product performance", value: "MacBook Air", trend: "Top", note: "42 units sold" },
+  { name: "Product performance", value: "iPhone 17 Pro Max", trend: "Top", note: "42 units sold" },
   { name: "Coupon usage", value: "57 uses", trend: "+9%", note: "SAVE5 leads" },
   { name: "Delivery report", value: "93%", trend: "On-time", note: "This month" },
 ]

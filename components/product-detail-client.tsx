@@ -37,13 +37,65 @@ type ProductDetailClientProps = {
   product: Product
 }
 
+function normalizeColorMatch(value: string) {
+  let decodedValue = value
+
+  try {
+    decodedValue = decodeURIComponent(value)
+  } catch {
+    decodedValue = value
+  }
+
+  return decodedValue
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+}
+
+function colorMatchesImage(color: string, image: string) {
+  const normalizedColor = normalizeColorMatch(color)
+  const normalizedImage = normalizeColorMatch(image)
+
+  if (!normalizedColor || normalizedColor === "default") return false
+  if (normalizedImage.includes(normalizedColor)) return true
+
+  const tokens = normalizedColor
+    .split(" ")
+    .filter((token) => token.length > 2)
+    .flatMap((token) => {
+      if (token === "gray") return [token, "grey"]
+      if (token === "grey") return [token, "gray"]
+      return [token]
+    })
+
+  return tokens.some((token) => normalizedImage.includes(token))
+}
+
+function findGalleryIndexForColor(color: string, gallery: string[]) {
+  return gallery.findIndex((image) => colorMatchesImage(color, image))
+}
+
+function findColorForImage(image: string, colors: string[]) {
+  return colors.find((color) => colorMatchesImage(color, image))
+}
+
+function cleanSpecText(spec: string) {
+  return spec
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.])/g, "$1")
+    .replace(/,\s*(helping|which|while|though|offering|bringing)\b.*$/i, "")
+    .replace(/\b(and|with|about|improved|option|f\/1)$/i, "")
+    .trim()
+    .replace(/[.,;:]+$/, "")
+}
+
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
   React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0 })
   }, [product.id])
 
   const [galleryIndex, setGalleryIndex] = React.useState(0)
-  const [selectedColor, setSelectedColor] = React.useState(product.colors[0])
+  const [selectedColor, setSelectedColor] = React.useState(product.colors[0] ?? "Default")
   const [quantity, setQuantity] = React.useState(1)
   const [cartOpen, setCartOpen] = React.useState(false)
   const [loginOpen, setLoginOpen] = React.useState(false)
@@ -53,6 +105,12 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [botOpen, setBotOpen] = React.useState(false)
   const [detailTab, setDetailTab] = React.useState<"specs" | "description">("specs")
   const toastTimer = React.useRef<number | null>(null)
+
+  React.useEffect(() => {
+    setGalleryIndex(0)
+    setSelectedColor(product.colors[0] ?? "Default")
+    setQuantity(1)
+  }, [product.id, product.colors])
 
   React.useEffect(() => {
     const dismissedAt = localStorage.getItem("wa_popup_dismissed_at")
@@ -96,6 +154,20 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const discount = discountFor(product)
   const relatedProducts = getRelatedProducts(product)
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
+
+  const selectGalleryImage = (index: number) => {
+    setGalleryIndex(index)
+
+    const imageColor = findColorForImage(product.gallery[index] ?? "", product.colors)
+    if (imageColor) setSelectedColor(imageColor)
+  }
+
+  const selectColor = (color: string) => {
+    setSelectedColor(color)
+
+    const colorImageIndex = findGalleryIndexForColor(color, product.gallery)
+    if (colorImageIndex >= 0) setGalleryIndex(colorImageIndex)
+  }
 
   const showToast = (message: string) => {
     setToast(message)
@@ -159,7 +231,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 <button
                   key={image}
                   type="button"
-                  onClick={() => setGalleryIndex(index)}
+                  onClick={() => selectGalleryImage(index)}
                   className={cn(
                     "grid size-20 shrink-0 place-items-center rounded-[8px] border bg-white transition",
                     galleryIndex === index
@@ -251,7 +323,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   <button
                     key={color}
                     type="button"
-                    onClick={() => setSelectedColor(color)}
+                    onClick={() => selectColor(color)}
                     className={cn(
                       "rounded-[8px] border px-3 py-2 text-sm font-semibold",
                       selectedColor === color
@@ -273,7 +345,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 {product.specs.map((spec) => (
                   <p key={spec} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="size-4 text-[#f97316]" />
-                    {spec}
+                    {cleanSpecText(spec)}
                   </p>
                 ))}
               </div>
@@ -375,7 +447,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                       <span className="font-bold text-slate-500">
                         Specification {index + 1}
                       </span>
-                      <span className="text-slate-850">{spec}</span>
+                      <span className="text-slate-850">{cleanSpecText(spec)}</span>
                     </div>
                   ))}
                 </div>

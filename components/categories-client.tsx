@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { SiteFooter } from "@/components/site-footer"
 import { StorefrontHeader } from "@/components/storefront-header"
+import { getProductById } from "@/lib/products"
 
 type Subcategory = {
   name: string
@@ -27,109 +28,108 @@ type Category = {
   subcategories: Subcategory[]
 }
 
+const productImage = (id: string) =>
+  getProductById(id)?.image ??
+  "https://cdn.hukut.com/Apple-iphone-16e-Price-in-Nepal.png1744176698913"
+
 const allCategories: Category[] = [
-  {
-    id: "laptop",
-    name: "Laptop",
-    image: "https://images.unsplash.com/photo-1496181130204-755241524eab?w=150&auto=format&fit=crop&q=60",
-    subcategories: [
-      { name: "Apple MacBooks", slug: "laptops", image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=80&auto=format&fit=crop&q=60" },
-      { name: "Lenovo Laptops", slug: "laptops", image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=80&auto=format&fit=crop&q=60" },
-      { name: "Dell XPS Workstations", slug: "laptops", image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=80&auto=format&fit=crop&q=60" },
-      { name: "HP Pavilions", slug: "laptops", image: "https://images.unsplash.com/photo-1589561084283-930aa7b1ce50?w=80&auto=format&fit=crop&q=60" },
-      { name: "ASUS ROG Gaming", slug: "laptops", image: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=80&auto=format&fit=crop&q=60" },
-    ],
-  },
-  {
-    id: "microphone",
-    name: "Microphone",
-    image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=150&auto=format&fit=crop&q=60",
-    subcategories: [
-      { name: "Fifine Microphone", slug: "microphones", image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=80&auto=format&fit=crop&q=60" },
-      { name: "Fantech Microphone", slug: "microphones", image: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=80&auto=format&fit=crop&q=60" },
-      { name: "Maono MIC", slug: "microphones", image: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=80&auto=format&fit=crop&q=60" },
-      { name: "Hollyland", slug: "microphones", image: "https://images.unsplash.com/photo-1525362081669-2b476bb628c3?w=80&auto=format&fit=crop&q=60" },
-      { name: "DJI", slug: "microphones", image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=80&auto=format&fit=crop&q=60" },
-    ],
-  },
-  {
-    id: "gaming-tables",
-    name: "Gaming Tables",
-    image: "https://images.unsplash.com/photo-1598550476439-6847785fce6e?w=150&auto=format&fit=crop&q=60",
-    subcategories: [
-      { name: "Fantech Gaming Desk", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1598550476439-6847785fce6e?w=80&auto=format&fit=crop&q=60" },
-      { name: "Thermaltake Desks", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=80&auto=format&fit=crop&q=60" },
-    ],
-  },
-  {
-    id: "web-camera",
-    name: "Web Camera",
-    image: "https://images.unsplash.com/photo-1616428784860-2646ff5bd365?w=150&auto=format&fit=crop&q=60",
-    subcategories: [
-      { name: "Logitech Webcams", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1616428784860-2646ff5bd365?w=80&auto=format&fit=crop&q=60" },
-      { name: "Fantech Webcams", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1600541519468-4a9121c60b56?w=80&auto=format&fit=crop&q=60" },
-    ],
-  },
   {
     id: "apple",
     name: "Apple",
-    image: "https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=150&auto=format&fit=crop&q=60",
+    image: productImage("apple-iphone-17-pro-max"),
     subcategories: [
-      { name: "iPhone 17 Series", slug: "iphone", image: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=80&auto=format&fit=crop&q=60" },
-      { name: "iPhone 15 Series", slug: "iphone", image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=80&auto=format&fit=crop&q=60" },
-      { name: "iPads & Tablets", slug: "iphone", image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=80&auto=format&fit=crop&q=60" },
-      { name: "AirPods & Audio", slug: "audio", image: "https://images.unsplash.com/photo-1588449668365-d15e397f6787?w=80&auto=format&fit=crop&q=60" },
+      { name: "iPhone 17 Series", slug: "iphone", image: productImage("apple-iphone-17") },
+      { name: "iPhone 16 Series", slug: "iphone", image: productImage("apple-iphone-16") },
+      { name: "iPhone 15 Series", slug: "iphone", image: productImage("apple-iphone-15") },
     ],
   },
   {
-    id: "smart-watch",
-    name: "Smart Watch",
-    image: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=150&auto=format&fit=crop&q=60",
+    id: "samsung",
+    name: "Samsung",
+    image: productImage("samsung-galaxy-s26-ultra"),
     subcategories: [
-      { name: "Apple Watch", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=80&auto=format&fit=crop&q=60" },
-      { name: "Samsung Galaxy Watch", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=80&auto=format&fit=crop&q=60" },
-      { name: "Xiaomi Band", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=80&auto=format&fit=crop&q=60" },
-      { name: "Amazfit", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1517502884422-41eaaced0168?w=80&auto=format&fit=crop&q=60" },
+      { name: "Galaxy S26 Ultra", slug: "samsung", image: productImage("samsung-galaxy-s26-ultra") },
+      { name: "Galaxy S25 Series", slug: "samsung", image: productImage("samsung-galaxy-s25-ultra") },
+      { name: "Galaxy Buds", slug: "audio", image: productImage("samsung-galaxy-buds-fe") },
     ],
   },
   {
-    id: "router",
-    name: "Router",
-    image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=150&auto=format&fit=crop&q=60",
+    id: "oneplus",
+    name: "OnePlus",
+    image: productImage("oneplus-15"),
     subcategories: [
-      { name: "TP-Link Routers", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=80&auto=format&fit=crop&q=60" },
-      { name: "Netgear", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=80&auto=format&fit=crop&q=60" },
-      { name: "ASUS Routers", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1631553127988-348df80c0514?w=80&auto=format&fit=crop&q=60" },
+      { name: "OnePlus 15", slug: "oneplus", image: productImage("oneplus-15") },
+      { name: "OnePlus Nord", slug: "oneplus", image: productImage("oneplus-nord-5") },
+      { name: "OnePlus 13R", slug: "oneplus", image: productImage("oneplus-13r") },
     ],
   },
   {
-    id: "docking-station",
-    name: "Docking Station",
-    image: "https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=150&auto=format&fit=crop&q=60",
+    id: "nothing",
+    name: "Nothing",
+    image: productImage("nothing-phone-3"),
     subcategories: [
-      { name: "USB-C Hubs", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=80&auto=format&fit=crop&q=60" },
-      { name: "Thunderbolt Docks", slug: "tech-accessories", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=80&auto=format&fit=crop&q=60" },
+      { name: "Nothing Phone (3)", slug: "nothing", image: productImage("nothing-phone-3") },
+      { name: "Nothing Phone (3a)", slug: "nothing", image: productImage("nothing-phone-3a") },
+      { name: "CMF Phone", slug: "nothing", image: productImage("nothing-cmf-phone-2-pro") },
+    ],
+  },
+  {
+    id: "redmi-xiaomi-poco",
+    name: "Redmi, Xiaomi & POCO",
+    image: productImage("xiaomi-17-ultra"),
+    subcategories: [
+      { name: "Redmi Phones", slug: "redmi", image: productImage("redmi-note-15-pro") },
+      { name: "Xiaomi Flagships", slug: "xiaomi", image: productImage("xiaomi-17-ultra") },
+      { name: "POCO Performance", slug: "poco", image: productImage("poco-f8-pro") },
+      { name: "Redmi Buds", slug: "audio", image: productImage("redmi-buds-6-play") },
+    ],
+  },
+  {
+    id: "oppo-vivo-realme",
+    name: "OPPO, vivo & realme",
+    image: productImage("oppo-find-n5"),
+    subcategories: [
+      { name: "OPPO Phones", slug: "oppo", image: productImage("oppo-find-n5") },
+      { name: "vivo Phones", slug: "vivo", image: productImage("vivo-x300-pro") },
+      { name: "realme Phones", slug: "realme", image: productImage("realme-15-pro") },
+    ],
+  },
+  {
+    id: "value-phones",
+    name: "Value Phones",
+    image: productImage("infinix-gt-30-pro"),
+    subcategories: [
+      { name: "Infinix", slug: "infinix", image: productImage("infinix-gt-30-pro") },
+      { name: "HONOR", slug: "honor", image: productImage("honor-400-pro") },
+      { name: "Motorola", slug: "motorola", image: productImage("motorola-g96-5g") },
     ],
   },
   {
     id: "smart-phone",
     name: "Smart Phone",
-    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150&auto=format&fit=crop&q=60",
+    image: productImage("apple-iphone-17"),
     subcategories: [
-      { name: "Flagship Phones", slug: "smart-phones", image: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=80&auto=format&fit=crop&q=60" },
-      { name: "Mid-range Phones", slug: "smart-phones", image: "https://images.unsplash.com/photo-1565849906660-4df8e17812c3?w=80&auto=format&fit=crop&q=60" },
-      { name: "Budget Phones", slug: "smart-phones", image: "https://images.unsplash.com/photo-1580910051074-3eb694886505?w=80&auto=format&fit=crop&q=60" },
+      { name: "All Phones", slug: "smart-phones", image: productImage("apple-iphone-17") },
+      { name: "Flagship Phones", slug: "featured-phones", image: productImage("samsung-galaxy-s26-ultra") },
+      { name: "Midrange Phones", slug: "deals", image: productImage("redmi-note-15-pro") },
     ],
   },
   {
-    id: "monitor",
-    name: "Monitor",
-    image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=150&auto=format&fit=crop&q=60",
+    id: "earbuds",
+    name: "Earbuds",
+    image: productImage("samsung-galaxy-buds-fe"),
     subcategories: [
-      { name: "Gaming Monitors", slug: "monitors", image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=80&auto=format&fit=crop&q=60" },
-      { name: "QHD Displays", slug: "monitors", image: "https://images.unsplash.com/photo-1547082299-de196ea013d6?w=80&auto=format&fit=crop&q=60" },
-      { name: "IPS Displays", slug: "monitors", image: "https://images.unsplash.com/photo-1586210579191-33b45e38fa2c?w=80&auto=format&fit=crop&q=60" },
-      { name: "LG OLED TVs", slug: "monitors", image: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=80&auto=format&fit=crop&q=60" },
+      { name: "Samsung Buds", slug: "audio", image: productImage("samsung-galaxy-buds-fe") },
+      { name: "Redmi Buds", slug: "audio", image: productImage("redmi-buds-6-play") },
+    ],
+  },
+  {
+    id: "accessories",
+    name: "Accessories",
+    image: productImage("cmf-watch-pro-3"),
+    subcategories: [
+      { name: "Chargers", slug: "tech-accessories", image: productImage("apple-20watt-usb-c-power-adapter") },
+      { name: "Smart Watches", slug: "tech-accessories", image: productImage("cmf-watch-pro-3") },
     ],
   },
 ]

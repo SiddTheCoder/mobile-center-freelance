@@ -176,7 +176,7 @@ export default function CartPage() {
             <h2 className="mt-6 text-2xl font-black">Your cart is empty</h2>
             <p className="mt-2 max-w-sm text-sm text-slate-500 leading-relaxed">
               Looks like you haven't added anything yet. Explore our latest
-              phones, laptops, and accessories.
+              phones, earbuds, and accessories.
             </p>
             <Link href="/">
               <Button className="mt-6 h-11 rounded-[8px] bg-[#f97316] px-6 text-white hover:bg-[#ea580c] font-bold shadow-md">

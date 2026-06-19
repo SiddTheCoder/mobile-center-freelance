@@ -15,9 +15,7 @@ import {
   Headphones,
   IdCard,
   Keyboard,
-  Laptop,
   MessageCircle,
-  Monitor,
   Mouse,
   Smartphone,
   Speaker,
@@ -25,7 +23,6 @@ import {
   Tv,
   Watch,
   Zap,
-  Plane,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -63,26 +60,26 @@ const productImage = (id: string) =>
 const heroSlides = [
   {
     eyebrow: "EMI starting at 0%",
-    title: "Xiaomi 17",
-    copy: "Power meets elegance. Experience the flagship performance with our hassle-free EMI plan.",
+    title: "Xiaomi 17 Ultra",
+    copy: "Real Nepal listing, flagship performance, and a clean EMI estimate for premium buyers.",
     priceDetails: {
-      total: "Rs. 124,999/-",
-      downPayment: "Rs. 49,999/-",
-      emi: "Rs. 8,334/-"
+      total: "Rs. 199,999/-",
+      downPayment: "Rs. 80,000/-",
+      emi: "Rs. 13,334/-"
     },
     price: "0% Interest",
-    image: productImage("xiaomi-17"),
-    href: "/product/xiaomi-17",
+    image: productImage("xiaomi-17-ultra"),
+    href: "/product/xiaomi-17-ultra",
     tone: "from-slate-100 via-slate-100 to-slate-200",
     isLight: true,
   },
   {
-    eyebrow: "Monitor deals",
-    title: "DRAMATIC DEALS ON MONITORS",
-    copy: "From Budget to High-Performance Displays. Get a Free Keyboard with Every Monitor Purchase.",
-    price: "Free Keyboard",
-    image: productImage("lenovo-gaming-27"),
-    href: "/section/monitors",
+    eyebrow: "Accessories",
+    title: "REAL ACCESSORY PICKS",
+    copy: "Chargers, earbuds, and smart wearables from the current Nepal research batch.",
+    price: "From Rs. 2,499",
+    image: productImage("cmf-watch-pro-3"),
+    href: "/section/tech-accessories",
     tone: "from-[#ea580c] via-[#ec4899] to-[#6d28d9]",
     isLight: false,
   },
@@ -93,10 +90,10 @@ const promoSlides = [
     badge: "Flagship Phone",
     title: "iPhone 17 Pro Max",
     subtitle: "A19 Pro · 48MP Pro Fusion · Titanium",
-    price: "Rs. 244,999",
+    price: "Rs. 247,999",
     highlight: "Same day pickup available",
-    image: "https://www.apple.com/v/iphone-17-pro/g/images/meta/iphone-17-pro_overview__eumhhclcpuaa_og.png?202606161406",
-    href: "/product/iphone-17-pro-max",
+    image: productImage("apple-iphone-17-pro-max"),
+    href: "/product/apple-iphone-17-pro-max",
     gradient: "from-[#1a1a2e] via-[#16213e] to-[#0f3460]",
     accentColor: "text-blue-400",
     badgeBg: "bg-blue-500/20 text-blue-300 border-blue-500/30",
@@ -104,51 +101,51 @@ const promoSlides = [
   },
   {
     badge: "Best Seller",
-    title: "Samsung S26 Ultra",
+    title: "Samsung Galaxy S26 Ultra",
     subtitle: "Snapdragon 8 Elite · 200MP · Galaxy AI",
-    price: "Rs. 219,999",
-    highlight: "Free Galaxy Buds3 Pro",
-    image: "https://www.samsung.com/samsung/resources/global/galaxy-s26-ultra/common/images/galaxy-s26-ultra-thumbnail-image.jpg",
-    href: "/product/samsung-s26-ultra",
+    price: "Rs. 202,999",
+    highlight: "Real Nepal price checked",
+    image: productImage("samsung-galaxy-s26-ultra"),
+    href: "/product/samsung-galaxy-s26-ultra",
     gradient: "from-[#0f3426] via-[#1a4731] to-[#061812]",
     accentColor: "text-emerald-400",
     badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
     glowColor: "bg-emerald-500/10",
   },
   {
-    badge: "Creator Pick",
-    title: "MacBook Air M3",
-    subtitle: "M3 Chip · 18hr Battery · Liquid Retina",
-    price: "Rs. 189,999",
-    highlight: "0% EMI available",
-    image: "https://www.apple.com/v/macbook-air/z/images/meta/macbook_air_mx__ez5y0k5yy7au_og.png?202605080834",
-    href: "/product/macbook-air-m3",
+    badge: "Performance Pick",
+    title: "OnePlus 15",
+    subtitle: "16GB RAM · 512GB storage · Flagship",
+    price: "Rs. 169,999",
+    highlight: "High-end Android option",
+    image: productImage("oneplus-15"),
+    href: "/product/oneplus-15",
     gradient: "from-[#2d1b69] via-[#1e1145] to-[#0d0a1a]",
     accentColor: "text-purple-400",
     badgeBg: "bg-purple-500/20 text-purple-300 border-purple-500/30",
     glowColor: "bg-purple-500/10",
   },
   {
-    badge: "Aerial Pro",
-    title: "DJI Lito X1",
-    subtitle: "48MP CMOS · 4K/100fps · 45-min flight",
-    price: "Rs. 99,499",
-    highlight: "Fly More Combo included",
-    image: "/dji_drone.png",
-    href: "/product/dji-lito-x1",
+    badge: "Midrange Pick",
+    title: "Redmi Note 15 Pro",
+    subtitle: "8GB RAM · 256GB storage · New arrival",
+    price: "Rs. 53,999",
+    highlight: "Strong value phone",
+    image: productImage("redmi-note-15-pro"),
+    href: "/product/redmi-note-15-pro",
     gradient: "from-[#1a1a1a] via-[#2d2d2d] to-[#0a0a0a]",
     accentColor: "text-amber-400",
     badgeBg: "bg-amber-500/20 text-amber-300 border-amber-500/30",
     glowColor: "bg-amber-500/10",
   },
   {
-    badge: "Studio Audio",
-    title: "Sony WH-1000XM5",
-    subtitle: "30hr Battery · Hi-Res · Adaptive ANC",
-    price: "Rs. 49,999",
-    highlight: "Premium noise cancelling",
-    image: "https://d1ncau8tqf99kp.cloudfront.net/converted/103364_original_local_1200x1050_v3_converted.webp",
-    href: "/product/sony-wh1000xm5",
+    badge: "Smart Accessory",
+    title: "CMF Watch Pro 3",
+    subtitle: "Smartwatch · Color variants · Nepal listing",
+    price: "Rs. 13,999",
+    highlight: "Accessory pick",
+    image: productImage("cmf-watch-pro-3"),
+    href: "/product/cmf-watch-pro-3",
     gradient: "from-[#1c1917] via-[#292524] to-[#0c0a09]",
     accentColor: "text-orange-400",
     badgeBg: "bg-orange-500/20 text-orange-300 border-orange-500/30",
@@ -157,55 +154,52 @@ const promoSlides = [
 ]
 
 const categoryPills = [
-  { name: "Laptop", icon: Laptop },
-  { name: "MacBook", icon: Laptop },
   { name: "iPhone", icon: Smartphone },
+  { name: "Samsung", icon: Smartphone },
+  { name: "OnePlus", icon: Smartphone },
+  { name: "Xiaomi", icon: Smartphone },
+  { name: "Nothing", icon: Smartphone },
   { name: "Smart Phone", icon: Smartphone },
-  { name: "Projector", icon: Monitor },
-  { name: "Drone", icon: Plane },
+  { name: "Earbuds", icon: Headphones },
 ]
 
 const shopTiles = [
-  { name: "Laptop", image: "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_7d413a689e_a024efb545f5da31.png", slug: "laptops" },
-  { name: "Apple", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/800px-Apple_logo_black.svg.png", slug: "apple" },
-  { name: "Smart Phone", image: "https://www.apple.com/v/iphone-17-pro/g/images/meta/iphone-17-pro_overview__eumhhclcpuaa_og.png?202606161406", slug: "smart-phones" },
-  { name: "Tablet", image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&auto=format&fit=crop&q=80", slug: "tech-accessories" },
-  { name: "Monitor", image: "https://p4-ofp.static.pub/ShareResource/optimized/pdp/loq/loq-laptops/len101q0016/lenovo-loq-gen-11-15-ahp-bundle-series-tn.png?width=584&height=584", slug: "monitors" },
-  { name: "PC Components", image: "https://fantechworld.com/cdn/shop/files/7ooEhcRs1634542321.png?v=1658886662", slug: "tech-accessories" },
-  { name: "Projector", image: "https://image.benq.com/is/image/benqco/mh560-front?$ResponsivePreset$", slug: "projectors" },
-  { name: "Earbuds", image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&auto=format&fit=crop&q=80", slug: "audio" },
-  { name: "Headphone", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&auto=format&fit=crop&q=80", slug: "audio" },
-  { name: "Projector Accessories", image: "https://images.unsplash.com/photo-1496181130204-7552cc14b1e0?w=400&auto=format&fit=crop&q=80", slug: "tech-accessories" },
-  { name: "Speaker", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&auto=format&fit=crop&q=80", slug: "tech-accessories" },
-  { name: "Drone", image: "/dji_drone.png", slug: "drones" },
-  { name: "Microphone", image: "/gaming_microphone.png", slug: "microphones" },
-  { name: "Smart Watch", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&auto=format&fit=crop&q=80", slug: "tech-accessories" },
+  { name: "Apple", image: productImage("apple-iphone-17-pro-max"), slug: "iphone" },
+  { name: "Samsung", image: productImage("samsung-galaxy-s26-ultra"), slug: "samsung" },
+  { name: "OnePlus", image: productImage("oneplus-15"), slug: "oneplus" },
+  { name: "Nothing", image: productImage("nothing-phone-3"), slug: "nothing" },
+  { name: "Redmi", image: productImage("redmi-note-15-pro"), slug: "redmi" },
+  { name: "Xiaomi", image: productImage("xiaomi-17-ultra"), slug: "xiaomi" },
+  { name: "POCO", image: productImage("poco-f8-pro"), slug: "poco" },
+  { name: "OPPO", image: productImage("oppo-find-n5"), slug: "oppo" },
+  { name: "vivo", image: productImage("vivo-x300-pro"), slug: "vivo" },
+  { name: "realme", image: productImage("realme-15-pro"), slug: "realme" },
+  { name: "Infinix", image: productImage("infinix-gt-30-pro"), slug: "infinix" },
+  { name: "Motorola", image: productImage("motorola-edge-50-fusion"), slug: "motorola" },
+  { name: "Earbuds", image: productImage("samsung-galaxy-buds-fe"), slug: "audio" },
+  { name: "Accessories", image: productImage("cmf-watch-pro-3"), slug: "tech-accessories" },
 ]
 
 const blogCards = [
   {
-    title: "RTX workstations for creators: what to buy first",
-    image:
-      "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_46d1c684b4_87ab3e0d0341f134.png",
+    title: "iPhone 17 Pro Max price in Nepal and key buying notes",
+    image: productImage("apple-iphone-17-pro-max"),
     tag: "Buying guide",
   },
   {
-    title: "Samsung S24 price in Nepal and real-world camera notes",
-    image:
-      "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_24b8334659_4b0e170beb7a7f21.png",
+    title: "Samsung Galaxy S26 Ultra price in Nepal",
+    image: productImage("samsung-galaxy-s26-ultra"),
     tag: "Phones",
   },
   {
-    title: "MacBook Air M3 vs M5 rumors: buy now or wait?",
-    image:
-      "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_eedd1c3a7a_bbcfc0bf587cf19a.png",
-    tag: "Apple",
+    title: "OnePlus 15 vs Xiaomi 17 Ultra: flagship picks",
+    image: productImage("oneplus-15"),
+    tag: "Android",
   },
   {
-    title: "Everything new in noise cancelling headphones this year",
-    image:
-      "https://storage.googleapis.com/uxpilot-auth.appspot.com/gen_9e9d822318_955d2557e14ff237.png",
-    tag: "Audio",
+    title: "Earbuds and smart accessories available in Nepal",
+    image: productImage("cmf-watch-pro-3"),
+    tag: "Accessories",
   },
 ]
 
@@ -216,15 +210,9 @@ const emiDocuments = [
 const emiTermOptions = [6, 9, 12, 18]
 
 function productMatchesCategory(product: Product, category: string) {
-  if (category.toLowerCase() === "macbook") {
-    return product.category === "Laptop" && product.brand === "Apple"
-  }
-
   if (category === "iPhone") {
     return product.category === "Smart Phone" && product.brand === "Apple"
   }
-
-  if (category === "Laptop") return product.category === "Laptop"
 
   return product.category === category || product.brand === category
 }
@@ -317,9 +305,9 @@ export default function Storefront() {
   const shouldReduceMotion = useReducedMotion()
   const [currentHero, setCurrentHero] = React.useState(0)
   const [currentPromo, setCurrentPromo] = React.useState(0)
-  const [activeCategory, setActiveCategory] = React.useState("Laptop")
+  const [activeCategory, setActiveCategory] = React.useState("Smart Phone")
   const [activePhoneBrand, setActivePhoneBrand] = React.useState("smart-phones")
-  const [arrivalTab, setArrivalTab] = React.useState("Laptop")
+  const [arrivalTab, setArrivalTab] = React.useState("Smart Phone")
   const [cartOpen, setCartOpen] = React.useState(false)
   const [loginOpen, setLoginOpen] = React.useState(false)
   const [authMode, setAuthMode] = React.useState<"login" | "signup">("login")
@@ -411,7 +399,7 @@ export default function Storefront() {
     () => getPhoneProducts(activePhoneFilter.brand).slice(0, 12),
     [activePhoneFilter.brand]
   )
-  const laptopShelfProducts = getProductsForSection("laptops").slice(0, 12)
+  const featuredShelfProducts = getProductsForSection("featured-phones").slice(0, 12)
   const accessoryShelfProducts = getProductsForSection("tech-accessories").slice(0, 12)
   const worldCupProducts = getProductsForSection("world-cup")
   const dealProducts = getProductsForSection("deals").slice(0, 12)
@@ -865,15 +853,15 @@ export default function Storefront() {
           </div>
         </RevealSection>
 
-        {/* Laptops & Work Machines */}
+        {/* Featured Phones */}
         <RevealSection className="py-10 border-t border-slate-100">
           <SectionTitle
-            eyebrow="Computing"
-            title="Laptops & Work Machines"
+            eyebrow="Real Nepal prices"
+            title="Featured Phones"
             action="See all"
-            actionHref="/section/laptops"
+            actionHref="/section/featured-phones"
           />
-          <ProductShelf items={laptopShelfProducts} onAdd={addToCart} />
+          <ProductShelf items={featuredShelfProducts} onAdd={addToCart} />
         </RevealSection>
 
         {/* Tech Accessories & Creator Gear */}
@@ -887,7 +875,7 @@ export default function Storefront() {
           <ProductShelf items={accessoryShelfProducts} onAdd={addToCart} />
         </RevealSection>
 
-        {/* World Cup Special Offer Section */}
+        {/* Launch Offer Section */}
         <RevealSection className="py-10 border-t border-slate-100">
           <div className="relative overflow-hidden rounded-[12px] bg-gradient-to-r from-[#030b20] via-[#102a5c] to-[#041235] p-6 text-white border border-[#1b3d7a] shadow-xl mb-6">
             <div className="absolute right-0 top-0 h-full w-[40%] bg-[radial-gradient(circle_at_right,rgba(59,130,246,0.15),transparent)] pointer-events-none" />
@@ -897,8 +885,8 @@ export default function Storefront() {
                   🏆
                 </span>
                 <div>
-                  <h2 className="text-2xl font-black tracking-tight uppercase text-white">World Cup Special Offer</h2>
-                  <p className="text-slate-300 text-sm font-semibold mt-0.5">Get a <span className="text-yellow-400 font-black">FREE JERSEY</span> with every purchase</p>
+                  <h2 className="text-2xl font-black tracking-tight uppercase text-white">Launch Offer Picks</h2>
+                  <p className="text-slate-300 text-sm font-semibold mt-0.5">Real Nepal phones with <span className="text-yellow-400 font-black">BUNDLE READY</span> accessory picks</p>
                 </div>
               </div>
               <Link
@@ -912,33 +900,34 @@ export default function Storefront() {
           <ProductShelf items={worldCupProducts} onAdd={addToCart} />
         </RevealSection>
 
-        {/* Promo Banners (Galaxy A57/PC Builds) */}
+        {/* Promo Banners */}
         <RevealSection className="grid gap-4 py-10 md:grid-cols-[1fr_1fr] border-t border-slate-100">
           <div className="rounded-[8px] bg-[#f2edf7] p-6">
             <p className="text-sm font-bold text-[#2b0f52]">The all-new</p>
-            <h3 className="text-3xl font-black text-[#101322]">Galaxy A57 5G</h3>
+            <h3 className="text-3xl font-black text-[#101322]">Samsung Galaxy S26 Ultra</h3>
             <p className="mt-2 max-w-sm text-sm text-slate-600">
-              Everyday phone, sharp display, all-day battery. Available for
-              pickup today.
+              Flagship Android phone with the researched Nepal price ready for
+              pickup inquiries.
             </p>
             <Link
               href="/section/samsung"
               className="mt-5 inline-flex h-10 items-center justify-center rounded-[8px] bg-[#2b0f52] px-4 text-sm font-bold text-white transition hover:bg-[#f97316]"
             >
-              Rs. 84,999
+              Rs. 202,999
             </Link>
           </div>
           <div className="rounded-[8px] bg-[#160f30] p-6 text-white">
             <p className="text-sm font-bold text-[#f97316]">Best deals on</p>
-            <h3 className="text-3xl font-black">Custom PC builds</h3>
+            <h3 className="text-3xl font-black">OnePlus and Xiaomi flagships</h3>
             <p className="mt-2 max-w-sm text-sm text-white/70">
-              Tell us what you play or create. We match GPU, CPU and cooling.
+              Compare real Nepal pricing for performance phones, storage variants,
+              and color options.
             </p>
             <Link
-              href="/section/tech-accessories"
+              href="/section/smart-phones"
               className="mt-5 inline-flex h-10 items-center justify-center rounded-[8px] bg-[#f97316] px-4 text-sm font-bold text-white transition hover:bg-[#ea580c]"
             >
-              Build setup
+              Shop phones
             </Link>
           </div>
         </RevealSection>
@@ -948,15 +937,15 @@ export default function Storefront() {
             <div className="flex items-center gap-3">
               <Zap className="size-6 fill-[#f97316] text-[#f97316]" />
               <h2 className="text-2xl font-black tracking-tight">
-                Limited Time Deals
+                Trending Nepal Picks
               </h2>
             </div>
             <div className="flex items-center gap-2 rounded-[8px] border border-[#f97316]/35 bg-white px-3 py-2 text-xs font-bold text-[#2b0f52]">
               <Timer className="size-4 text-[#f97316]" />
-              Ends in
-              <span className="rounded-[6px] bg-[#fff6ed] px-2 py-1">41h</span>
-              <span className="rounded-[6px] bg-[#fff6ed] px-2 py-1">12m</span>
-              <span className="rounded-[6px] bg-[#fff6ed] px-2 py-1">09s</span>
+              Updated
+              <span className="rounded-[6px] bg-[#fff6ed] px-2 py-1">Jun</span>
+              <span className="rounded-[6px] bg-[#fff6ed] px-2 py-1">19</span>
+              <span className="rounded-[6px] bg-[#fff6ed] px-2 py-1">2026</span>
             </div>
           </div>
           <ProductShelf items={dealProducts} onAdd={addToCart} />
@@ -969,7 +958,7 @@ export default function Storefront() {
                 Buy now, pay later
               </p>
               <p className="mt-1 text-2xl font-black text-[#101322]">
-                40% down payment | 0% interest on selected laptops, phones and tablets
+                40% down payment | 0% interest on selected phones and accessories
               </p>
             </div>
             <Button
@@ -985,7 +974,7 @@ export default function Storefront() {
         <RevealSection className="py-10">
           <SectionTitle title="New Arrivals at Store" />
           <div className="mb-6 flex gap-2 overflow-x-auto scrollbar-none">
-            {["Laptop", "Monitor", "Smart Phone", "MacBook", "Earbuds", "Headphone"].map(
+            {["Smart Phone", "iPhone", "Samsung", "OnePlus", "Xiaomi", "Earbuds"].map(
               (tab) => (
                 <button
                   key={tab}
@@ -1072,8 +1061,8 @@ export default function Storefront() {
               <div className="mt-6 rounded-[8px] border border-[#f97316]/30 bg-[#f97316]/10 p-4 text-sm text-orange-50">
                 <p className="font-black">Basic rule</p>
                 <p className="mt-1 text-white/70">
-                  Minimum 40% down payment with 0% interest on selected laptops,
-                  phones and tablets. Citizenship is enough for the initial
+                  Minimum 40% down payment with 0% interest on selected phones
+                  and accessories. Citizenship is enough for the initial
                   eligibility check in Nepal.
                 </p>
               </div>
